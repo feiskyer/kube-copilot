@@ -1,6 +1,8 @@
 # Kubernetes Copilot
 
-ChatGPT based copilot for your Kubernetes cluster.
+Kubernetes Copilot powered by OpenAI.
+
+**Caution: Copilot may generate and execute inappropriate operations, do not use in production environment!**
 
 **Major features:**
 
@@ -9,7 +11,6 @@ ChatGPT based copilot for your Kubernetes cluster.
 * Native kubectl and bash commands for accessing Kubernetes cluster.
 * Web access and Google search support without leaving the terminal.
 
-**Caution: Copilot may generate and execute inappropriate operations, do not use in production environment!**
 
 ## Install
 
@@ -143,18 +144,11 @@ Action:
 
 Observation: Name:             nginx-944b5f9bd-ch67l
 Namespace:        default
-Priority:         0
-Service Account:  default
-Node:             aks-nodepool1-13845861-vmss00001r/10.224.118.0
 Start Time:       Sat, 25 Mar 2023 11:27:15 +0000
 Labels:           app=nginx
                   pod-template-hash=944b5f9bd
 Annotations:      <none>
 Status:           Pending
-IP:               10.244.2.70
-IPs:
-  IP:           10.244.2.70
-Controlled By:  ReplicaSet/nginx-944b5f9bd
 Containers:
   nginx:
     Container ID:
@@ -183,7 +177,6 @@ Action:
 Observation: Events:
   Type     Reason     Age                    From               Message
   ----     ------     ----                   ----               -------
-  Normal   Scheduled  6m43s                  default-scheduler  Successfully assigned default/nginx-944b5f9bd-ch67l to aks-nodepool1-13845861-vmss00001r
   Normal   Pulling    5m6s (x4 over 6m43s)   kubelet            Pulling image "nginx:1.21.100"
   Warning  Failed     5m5s (x4 over 6m42s)   kubelet            Failed to pull image "nginx:1.21.100": rpc error: code = NotFound desc = failed to pull and unpack image "docker.io/library/nginx:1.21.100": failed to resolve reference "docker.io/library/nginx:1.21.100": docker.io/library/nginx:1.21.100: not found
 
