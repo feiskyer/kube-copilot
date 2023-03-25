@@ -14,12 +14,14 @@ from kube_copilot.prompts import (
 @click.version_option()
 @click.option("--short", is_flag=True, default=False, help="Disable verbose information of copilot execution steps")
 @click.option("--model", default="gpt-3.5-turbo", help="OpenAI model to use for copilot execution, default is gpt-3.5-turbo")
+@click.option("--enable-terminal", is_flag=True, default=False, help="Enable Copilot to run programs within terminal. Enable with caution since Copilot may execute inappropriate commands")
 @click.pass_context
-def cli(ctx, short, model):
+def cli(ctx, short, model, enable_terminal):
     '''Kubernetes Copilot powered by OpenAI'''
     init_openai()
     ctx.ensure_object(dict)
-    ctx.obj["chain"] = CopilotLLM(verbose=not short, model=model)
+    ctx.obj["chain"] = CopilotLLM(
+        verbose=not short, model=model, enable_terminal=enable_terminal)
 
 
 @cli.command(help="execute operations based on prompt instructions")

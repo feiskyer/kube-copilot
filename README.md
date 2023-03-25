@@ -2,9 +2,11 @@
 
 Kubernetes Copilot powered by OpenAI.
 
+**Status: Experimental**
+
 **Caution: Copilot may generate and execute inappropriate operations, do not use in production environment!**
 
-**Major features:**
+Features:
 
 * Automatically operate Kubernetes cluster based on prompt instructions.
 * Human interactions on uncertain instructions to avoid inappropriate operations.
