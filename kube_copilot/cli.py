@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import click
-from llm import init_openai
-from agent import CopilotLLM
-from prompts import (
+from kube_copilot.llm import init_openai
+from kube_copilot.agent import CopilotLLM
+from kube_copilot.prompts import (
     get_prompt,
     get_diagnose_prompt,
     get_audit_prompt
