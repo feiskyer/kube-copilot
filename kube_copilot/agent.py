@@ -9,11 +9,14 @@ from langchain.utilities import GoogleSearchAPIWrapper
 
 
 class CopilotLLM:
+    '''Wrapper for LLM chain.'''
 
-    def __init__(self, verbose=True, additional_tools=[]):
-        self.chain = get_chat_chain(verbose, additional_tools)
+    def __init__(self, verbose=True, model="gpt-3.5-turbo", additional_tools=None):
+        '''Initialize the LLM chain.'''
+        self.chain = get_chat_chain(verbose, model, additional_tools)
 
     def run(self, instructions):
+        '''Run the LLM chain.'''
         try:
             result = self.chain.run(instructions)
             return result
@@ -25,9 +28,15 @@ class CopilotLLM:
                 raise e
 
 
-def get_chat_chain(verbose=True, additional_tools=[], agent="chat-zero-shot-react-description", max_iterations=30):
+def get_chat_chain(verbose=True, model="gpt-3.5-turbo", additional_tools=None,
+                   agent="chat-zero-shot-react-description", max_iterations=30):
     '''Initialize the LLM chain with useful tools.'''
-    llm = ChatOpenAI(engine="gpt-35-turbo", max_tokens=512)
+    if os.getenv("OPENAI_API_TYPE") == "azure":
+        if model == "gpt-3.5-turbo":
+            model = "gpt-35-turbo"
+        llm = ChatOpenAI(engine=model, max_tokens=512)
+    else:
+        llm = ChatOpenAI(model=model, max_tokens=512)
 
     tools = load_tools(["terminal", "human"], llm)
     if os.getenv("KUBE_COPILOT_ENABLE_PYTHON"):
@@ -39,7 +48,7 @@ def get_chat_chain(verbose=True, additional_tools=[], agent="chat-zero-shot-reac
             )
         ]
 
-    if os.getenv("GOOGLE_API_KEY") != "" and os.getenv("GOOGLE_CSE_ID") != "":
+    if os.getenv("GOOGLE_API_KEY") and os.getenv("GOOGLE_CSE_ID"):
         tools += [
             Tool(
                 name="Search",
@@ -51,7 +60,8 @@ def get_chat_chain(verbose=True, additional_tools=[], agent="chat-zero-shot-reac
             )
         ]
 
-    tools += additional_tools
+    if additional_tools is not None:
+        tools += additional_tools
 
     memory = ConversationBufferMemory(
         memory_key="chat_history", return_messages=True)
