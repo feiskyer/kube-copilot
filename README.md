@@ -22,7 +22,7 @@ pip install kube-copilot
 ## Setup
 
 * `kubectl` should be installed in the local machine and kubeconfig file should be configured to access kubernetes cluster.
-* `docker` should be used to evaluate the security issues of container images (for `audit` command).
+* `docker` should be installed to evaluate the security issues of container images (for `audit` command).
 * OpenAI API key should be set to `OPENAI_API_KEY` environment variable to enable the ChatGPT feature.
   * `OPENAI_API_BASE` should be set as well for Azure OpenAI service.
 
