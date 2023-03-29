@@ -37,11 +37,8 @@ Usage: kube-copilot [OPTIONS] COMMAND [ARGS]...
   Kubernetes Copilot powered by OpenAI
 
 Options:
-  --version     Show the version and exit.
-  --short       Disable verbose information of copilot execution steps
-  --model TEXT  OpenAI model to use for copilot execution, default is
-                gpt-3.5-turbo
-  --help        Show this message and exit.
+  --version  Show the version and exit.
+  --help     Show this message and exit.
 
 Commands:
   audit     audit security issues for a Pod
@@ -51,7 +48,22 @@ Commands:
 
 ### Audit Security Issues for Pod
 
-`kube-copilot audit POD [NAMESPACE]` will audit security issues for a Pod.
+`kube-copilot audit POD [NAMESPACE]` will audit security issues for a Pod:
+
+```sh
+Usage: kube-copilot audit [OPTIONS] POD [NAMESPACE]
+
+  audit security issues for a Pod
+
+Options:
+  --short            Disable verbose information of copilot execution steps
+  --model TEXT       OpenAI model to use for copilot execution, default is
+                     gpt-3.5-turbo
+  --enable-terminal  Enable Copilot to run programs within terminal. Enable
+                     with caution since Copilot may execute inappropriate
+                     commands
+  --help             Show this message and exit.
+```
 
 Here is an example of auditing a Pod with old nginx image (note `image cve` is the ad-hoc prompt during the auditing process):
 
@@ -128,7 +140,22 @@ Total: 125 (HIGH: 95, CRITICAL: 30)
 
 ### Diagnose Problems for Pod
 
-`kube-copilot diagnose POD [NAMESPACE]` will diagnose problems for a Pod.
+`kube-copilot diagnose POD [NAMESPACE]` will diagnose problems for a Pod:
+
+```sh
+Usage: kube-copilot diagnose [OPTIONS] POD [NAMESPACE]
+
+  diagnose problems for a Pod
+
+Options:
+  --short            Disable verbose information of copilot execution steps
+  --model TEXT       OpenAI model to use for copilot execution, default is
+                     gpt-3.5-turbo
+  --enable-terminal  Enable Copilot to run programs within terminal. Enable
+                     with caution since Copilot may execute inappropriate
+                     commands
+  --help             Show this message and exit.
+```
 
 Here is an example of diagnosing a problem Pod:
 
@@ -217,12 +244,28 @@ The issue with the Pod nginx-944b5f9bd-ch67l in namespace default is that the re
 ### Execute Operations Based on Prompt Instructions
 
 `kube-copilot execute INSTRUCTIONS` will execute operations based on prompt instructions.
-It could also be used to ask any questions
+It could also be used to ask any questions.
+
+```sh
+Usage: kube-copilot execute [OPTIONS] INSTRUCTIONS
+
+  execute operations based on prompt instructions
+
+Options:
+  --short            Disable verbose information of copilot execution steps
+  --model TEXT       OpenAI model to use for copilot execution, default is
+                     gpt-3.5-turbo
+  --enable-terminal  Enable Copilot to run programs within terminal. Enable
+                     with caution since Copilot may execute inappropriate
+                     commands
+  --help             Show this message and exit.
+```
 
 Here is an example of querying the Pod consumed most CPU:
 
 ```sh
 # kube-copilot execute "list the the Pod consumed most CPU with its current CPU consumption"
+Copilot may generate and execute inappropriate operations steps, are you sure to continue? [y/N]: y
 
 > Entering new AgentExecutor chain...
 Thought: To complete the task, we need to use `Terminal` tool and run some kubectl commands to get the desired output.

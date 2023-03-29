@@ -32,11 +32,9 @@ class CopilotLLM:
 
 
 class KubeProcess(BashProcess):
+    '''Wrapper for kubectl/docker/trivy/helm commands.'''
 
-    supported_commands = ["kubectl", "docker", "trivy"]
-
-    def __init__(self, strip_newlines: bool = False, return_err_output: bool = False):
-        return super().__init__(strip_newlines, return_err_output)
+    supported_commands = ["kubectl", "docker", "trivy", "helm"]
 
     def run(self, commands: Union[str, List[str]]) -> str:
         if isinstance(commands, str):
@@ -56,9 +54,9 @@ def get_chat_chain(verbose=True, model="gpt-3.5-turbo", additional_tools=None,
     if os.getenv("OPENAI_API_TYPE") == "azure":
         if model == "gpt-3.5-turbo":
             model = "gpt-35-turbo"
-        llm = ChatOpenAI(engine=model, max_tokens=512)
+        llm = ChatOpenAI(engine=model, max_tokens=512, temperature=0)
     else:
-        llm = ChatOpenAI(model=model, max_tokens=512)
+        llm = ChatOpenAI(model=model, max_tokens=512, temperature=0)
 
     tools = load_tools(["human"], llm)
     if enable_terminal:
