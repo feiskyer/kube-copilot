@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 import os
-from typing import List, Union
 from langchain.chat_models import ChatOpenAI
 from langchain.agents import Tool, load_tools
 from langchain.memory import ConversationBufferMemory
 from langchain.agents import initialize_agent
 from langchain.tools.python.tool import PythonREPLTool
 from langchain.utilities import GoogleSearchAPIWrapper
-from langchain.utilities.bash import BashProcess
+from kube_copilot.shell import KubeProcess
 
 
 class CopilotLLM:
@@ -24,27 +23,11 @@ class CopilotLLM:
             result = self.chain.run(instructions)
             return result
         except Exception as e:
-            # Workaround for issue https://github.com/hwchase17/langchain/issues/1358.
+            # TODO: Workaround for issue https://github.com/hwchase17/langchain/issues/1358.
             if "Could not parse LLM output:" in str(e):
-                return str(e).split("Could not parse LLM output:")[1]
+                return str(e).removeprefix("Could not parse LLM output: `").removesuffix("`")
             else:
                 raise e
-
-
-class KubeProcess(BashProcess):
-    '''Wrapper for kubectl/docker/trivy/helm commands.'''
-
-    supported_commands = ["kubectl", "docker", "trivy", "helm"]
-
-    def run(self, commands: Union[str, List[str]]) -> str:
-        if isinstance(commands, str):
-            commands = [commands]
-        commands = ";".join(commands)
-        if not any(commands.startswith(cmd) for cmd in self.supported_commands):
-            # raise Exception(f'Commands {commands} is not allowed to run')
-            return None
-
-        return super().run(commands)
 
 
 def get_chat_chain(verbose=True, model="gpt-3.5-turbo", additional_tools=None,
@@ -54,9 +37,9 @@ def get_chat_chain(verbose=True, model="gpt-3.5-turbo", additional_tools=None,
     if os.getenv("OPENAI_API_TYPE") == "azure":
         if model == "gpt-3.5-turbo":
             model = "gpt-35-turbo"
-        llm = ChatOpenAI(engine=model, max_tokens=512, temperature=0)
+        llm = ChatOpenAI(engine=model, model=model, temperature=0)
     else:
-        llm = ChatOpenAI(model=model, max_tokens=512, temperature=0)
+        llm = ChatOpenAI(model=model, temperature=0)
 
     tools = load_tools(["human"], llm)
     if enable_terminal:
@@ -64,10 +47,25 @@ def get_chat_chain(verbose=True, model="gpt-3.5-turbo", additional_tools=None,
     else:
         tools += [
             Tool(
-                name="KubeProcess",
-                description="Executes kubectl/docker/trivy commands in a terminal. Input should be valid kubectl/docker/trivy commands (other commands are not supported), and the output will be any output from running that command.",
-                func=KubeProcess().run,
-            )
+                name="Kubectl",
+                description="Executes kubectl command to interact with kubernetes cluster",
+                func=KubeProcess(command="kubectl").run,
+            ),
+            Tool(
+                name="Helm",
+                description="Executes helm command to manage helm releases",
+                func=KubeProcess(command="helm").run,
+            ),
+            Tool(
+                name="Trivy",
+                description="Executes trivy image command to scan images for vulnerabilities",
+                func=KubeProcess(command="trivy").run,
+            ),
+            Tool(
+                name="Docker",
+                description="Executes docker command to interact with docker daemon",
+                func=KubeProcess(command="docker").run,
+            ),
         ]
 
     if os.getenv("KUBE_COPILOT_ENABLE_PYTHON"):
