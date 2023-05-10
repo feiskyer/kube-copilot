@@ -2,7 +2,7 @@
 
 _base_prompt = '''Follow the below instructions to complete the tasks. Please ensure
 the tasks are within Kubernetes and cloud native networking domain. If any write
-or delete operations are quired, or you are not sure on the instructions, please
+or delete operations are required, or you are not sure on the instructions, please
 invoke human tool to ask more inputs. Please only use kubectl, docker, helm or trivy
 image commands while diagnosing issues and do not try to install anything. If some tools
 are missing, just skip executing and respond the instruction steps.'''

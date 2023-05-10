@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "kube-copilot"
-version = "0.1.7"
+version = "0.1.8"
 description = "Kubernetes Copilot"
 authors = ["Pengfei Ni <feiskyer@gmail.com>"]
 readme = "README.md"
@@ -14,10 +14,12 @@ kube-copilot = 'kube_copilot.cli:main'
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4"
-langchain = ">=0.0.141"
+langchain = ">=0.0.169"
 requests = ">=2.28"
 openai = ">=0.27.4"
 tiktoken = ">=0.3.1"
+lark = "==1.1.5"
+faiss-cpu = {version = "^1"}
 google-api-python-client = ">=2.85.0"
 click = ">=8.1.3"
 

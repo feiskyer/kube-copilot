@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import logging
+import sys
 import click
 from kube_copilot.llm import init_openai
 from kube_copilot.agent import CopilotLLM
@@ -10,13 +12,15 @@ from kube_copilot.prompts import (
 )
 
 
+logging.basicConfig(stream=sys.stdout, level=logging.CRITICAL)
+logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
+
+
 cmd_options = [
-    click.option("--short", is_flag=True, default=False,
-                 help="Disable verbose information of copilot execution steps"),
-    click.option("--model", default="gpt-3.5-turbo",
-                 help="OpenAI model to use for copilot execution, default is gpt-3.5-turbo"),
-    click.option("--enable-terminal", is_flag=True, default=False,
-                 help="Enable Copilot to run programs within terminal. Enable with caution since Copilot may execute inappropriate commands"),
+    click.option("--verbose", is_flag=True, default=False,
+                 help="Enable verbose information of copilot execution steps"),
+    click.option("--model", default="gpt-4",
+                 help="OpenAI model to use for copilot execution, default is gpt-4"),
 ]
 
 
@@ -29,10 +33,10 @@ def add_options(options):
     return _add_options
 
 
-def get_llm_chain(verbose, model, enable_terminal):
+def get_llm_chain(verbose, model):
     '''Get Copilot LLM chain'''
     init_openai()
-    return CopilotLLM(verbose=verbose, model=model, enable_terminal=enable_terminal)
+    return CopilotLLM(verbose=verbose, model=model)
 
 
 @click.group()
@@ -44,21 +48,20 @@ def cli():
 @cli.command(help="execute operations based on prompt instructions")
 @click.argument('instructions')
 @add_options(cmd_options)
-def execute(instructions, short, model, enable_terminal):
+def execute(instructions, verbose, model):
     '''Execute operations based on prompt instructions'''
-    if click.confirm("Copilot may generate and execute inappropriate operations steps, are you sure to continue?"):
-        chain = get_llm_chain(not short, model, enable_terminal)
-        result = chain.run(get_prompt(instructions))
-        print(result)
+    chain = get_llm_chain(verbose, model)
+    result = chain.run(get_prompt(instructions))
+    print(result)
 
 
 @cli.command(help="diagnose problems for a Pod")
 @click.argument('pod')
 @click.argument('namespace', default="default")
 @add_options(cmd_options)
-def diagnose(namespace, pod, short, model, enable_terminal):
+def diagnose(namespace, pod, verbose, model):
     '''Diagnose problems for a Pod'''
-    chain = get_llm_chain(not short, model, enable_terminal)
+    chain = get_llm_chain(verbose, model)
     result = chain.run(get_diagnose_prompt(namespace, pod))
     print(result)
 
@@ -67,9 +70,9 @@ def diagnose(namespace, pod, short, model, enable_terminal):
 @click.argument('pod')
 @click.argument('namespace', default="default")
 @add_options(cmd_options)
-def audit(namespace, pod, short, model, enable_terminal):
+def audit(namespace, pod, verbose, model):
     '''Audit security issues for a Pod'''
-    chain = get_llm_chain(not short, model, enable_terminal)
+    chain = get_llm_chain(verbose, model)
     result = chain.run(get_audit_prompt(namespace, pod))
     print(result)
 
