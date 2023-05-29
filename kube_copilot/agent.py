@@ -5,7 +5,7 @@ from langchain.agents import Tool
 from langchain.utilities import GoogleSearchAPIWrapper
 from langchain.experimental.plan_and_execute import PlanAndExecute, load_agent_executor, load_chat_planner
 from kube_copilot.shell import KubeProcess
-
+from kube_copilot.prompts import get_planner_prompt
 
 class CopilotLLM:
     '''Wrapper for LLM chain.'''
@@ -37,7 +37,7 @@ def get_chat_chain(verbose=True, model="gpt-3.5-turbo", additional_tools=None):
     else:
         llm = ChatOpenAI(model_name=model, temperature=0)
 
-    planner = load_chat_planner(llm=llm)
+    planner = load_chat_planner(llm=llm, system_prompt=get_planner_prompt())
     tools = [
         Tool(
             name="kubectl",
@@ -67,4 +67,4 @@ def get_chat_chain(verbose=True, model="gpt-3.5-turbo", additional_tools=None):
         tools += additional_tools
 
     executor = load_agent_executor(llm, tools, verbose=verbose)
-    return PlanAndExecute(planner=planner, executer=executor, verbose=verbose)
+    return PlanAndExecute(planner=planner, executor=executor, verbose=verbose)
