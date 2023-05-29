@@ -26,7 +26,7 @@ pip install kube-copilot
 * `kubectl` should be [installed](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) in the local machine and kubeconfig file should be configured to access kubernetes cluster.
 * `trivy` should be [installed](https://github.com/aquasecurity/trivy) to evaluate the security issues of container images (for `audit` command).
 * OpenAI [API key](https://platform.openai.com/account/api-keys) should be set to `OPENAI_API_KEY` environment variable to enable the ChatGPT feature.
-  * `OPENAI_API_BASE` should be set as well for [Azure OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart?tabs=command-line&pivots=rest-api#retrieve-key-and-endpoint).
+  * `OPENAI_API_TYPE=azure` and `OPENAI_API_BASE=https://<replace-this>.openai.azure.com/` should be set as well for [Azure OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart?tabs=command-line&pivots=rest-api#retrieve-key-and-endpoint).
 * Google search is not enabled by default. Set `GOOGLE_API_KEY` and `GOOGLE_CSE_ID` if you want to enable it (get from [here](https://cloud.google.com/docs/authentication/api-keys?visit_id=638154888929258210-4085587461) and [here](http://www.google.com/cse/ )).
 
 ## How to use
