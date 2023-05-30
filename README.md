@@ -30,6 +30,8 @@ pip install kube-copilot
 
 ## How to use
 
+Running directly in the terminal:
+
 ```sh
 Usage: kube-copilot [OPTIONS] COMMAND [ARGS]...
 
@@ -43,6 +45,16 @@ Commands:
   audit     audit security issues for a Pod
   diagnose  diagnose problems for a Pod
   execute   execute operations based on prompt instructions
+```
+
+Running as container:
+
+```sh
+kubectl run -it --rm copilot \
+  --env="OPENAI_API_KEY=$OPENAI_API_KEY" \
+  --restart=Never \
+  --image=ghcr.io/feiskyer/kube-copilot \
+  -- execute --verbose 'What Pods are using max memory in the cluster'
 ```
 
 ### Audit Security Issues for Pod
