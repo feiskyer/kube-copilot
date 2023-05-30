@@ -7,6 +7,7 @@ from langchain.experimental.plan_and_execute import PlanAndExecute, load_agent_e
 from kube_copilot.shell import KubeProcess
 from kube_copilot.prompts import get_planner_prompt
 
+
 class CopilotLLM:
     '''Wrapper for LLM chain.'''
 

@@ -2,16 +2,15 @@
 
 Kubernetes Copilot powered by OpenAI.
 
-**Status: Experimental**
+**Status:** Experimental.
 
-**Caution: Copilot may generate and execute inappropriate operations, do not use in production environment!**
+**Caution:** Copilot may generate and execute unsuitable operations; avoid using in production environments! For improved reasoning performance, **GPT-4** is highly recommended (although GPT-3.5 is also supported).
 
 Features:
 
-* Automatically operate Kubernetes cluster based on prompt instructions.
-* Human interactions on uncertain instructions to avoid inappropriate operations.
-* Native kubectl and bash commands for accessing Kubernetes cluster.
-* Web access and Google search support without leaving the terminal.
+- Automate Kubernetes cluster operations using Plan-and-Solve prompts with GPT-4.
+- Utilize native kubectl and trivy commands for Kubernetes cluster access and security vulnerability scanning.
+- Access the web and perform Google searches without leaving the terminal.
 
 ## Install
 
@@ -23,11 +22,11 @@ pip install kube-copilot
 
 ## Setup
 
-* `kubectl` should be [installed](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) in the local machine and kubeconfig file should be configured to access kubernetes cluster.
-* `trivy` should be [installed](https://github.com/aquasecurity/trivy) to evaluate the security issues of container images (for `audit` command).
-* OpenAI [API key](https://platform.openai.com/account/api-keys) should be set to `OPENAI_API_KEY` environment variable to enable the ChatGPT feature.
-  * `OPENAI_API_TYPE=azure` and `OPENAI_API_BASE=https://<replace-this>.openai.azure.com/` should be set as well for [Azure OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart?tabs=command-line&pivots=rest-api#retrieve-key-and-endpoint).
-* Google search is not enabled by default. Set `GOOGLE_API_KEY` and `GOOGLE_CSE_ID` if you want to enable it (get from [here](https://cloud.google.com/docs/authentication/api-keys?visit_id=638154888929258210-4085587461) and [here](http://www.google.com/cse/ )).
+- Ensure [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) is installed on the local machine and the kubeconfig file is configured for Kubernetes cluster access.
+- Install [`trivy`](https://github.com/aquasecurity/trivy) to assess container image security issues (for the `audit` command).
+- Set the OpenAI [API key](https://platform.openai.com/account/api-keys) as the `OPENAI_API_KEY` environment variable to enable ChatGPT functionality.
+  - For [Azure OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart?tabs=command-line&pivots=rest-api#retrieve-key-and-endpoint), also set `OPENAI_API_TYPE=azure` and `OPENAI_API_BASE=https://<replace-this>.openai.azure.com/`.
+- Google search is disabled by default. To enable it, set `GOOGLE_API_KEY` and `GOOGLE_CSE_ID` (obtain from [here](https://cloud.google.com/docs/authentication/api-keys?visit_id=638154888929258210-4085587461) and [here](http://www.google.com/cse/)).
 
 ## How to use
 
@@ -56,9 +55,9 @@ Usage: kube-copilot audit [OPTIONS] POD [NAMESPACE]
   audit security issues for a Pod
 
 Options:
-  --verbose     Enable verbose information of copilot execution steps
-  --model TEXT  OpenAI model to use for copilot execution, default is gpt-4
-  --help        Show this message and exit.
+  --verbose      Enable verbose information of copilot execution steps
+  --model MODEL  OpenAI model to use for copilot execution, default is gpt-4
+  --help         Show this message and exit.
 ```
 
 ### Diagnose Problems for Pod
@@ -71,9 +70,9 @@ Usage: kube-copilot diagnose [OPTIONS] POD [NAMESPACE]
   diagnose problems for a Pod
 
 Options:
-  --verbose     Enable verbose information of copilot execution steps
-  --model TEXT  OpenAI model to use for copilot execution, default is gpt-4
-  --help        Show this message and exit.
+  --verbose      Enable verbose information of copilot execution steps
+  --model MODEL  OpenAI model to use for copilot execution, default is gpt-4
+  --help         Show this message and exit.
 ```
 
 ### Execute Operations Based on Prompt Instructions
@@ -87,9 +86,9 @@ Usage: kube-copilot execute [OPTIONS] INSTRUCTIONS
   execute operations based on prompt instructions
 
 Options:
-  --verbose     Enable verbose information of copilot execution steps
-  --model TEXT  OpenAI model to use for copilot execution, default is gpt-4
-  --help        Show this message and exit.
+  --verbose      Enable verbose information of copilot execution steps
+  --model MODEL  OpenAI model to use for copilot execution, default is gpt-4
+  --help         Show this message and exit.
 ```
 
 ## Contribution
