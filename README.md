@@ -42,6 +42,7 @@ Options:
   --help     Show this message and exit.
 
 Commands:
+  analyze   analyze issues for a given resource
   audit     audit security issues for a Pod
   diagnose  diagnose problems for a Pod
   execute   execute operations based on prompt instructions
@@ -85,6 +86,22 @@ Options:
   --verbose      Enable verbose information of copilot execution steps
   --model MODEL  OpenAI model to use for copilot execution, default is gpt-4
   --help         Show this message and exit.
+```
+
+### Analyze Potential Issues for k8s Object
+
+`kube-copilot analyze RESOURCE NAME [NAMESPACE]` will analyze potential issues for the given resource object:
+
+
+```sh
+Usage: kube-copilot analyze [OPTIONS] RESOURCE NAME [NAMESPACE]
+
+  analyze issues for a given resource
+
+Options:
+  --verbose     Enable verbose information of copilot execution steps
+  --model TEXT  OpenAI model to use for copilot execution, default is gpt-4
+  --help        Show this message and exit.
 ```
 
 ### Execute Operations Based on Prompt Instructions
