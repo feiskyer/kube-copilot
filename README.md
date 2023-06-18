@@ -58,6 +58,8 @@ kubectl run -it --rm copilot \
   -- execute --verbose 'What Pods are using max memory in the cluster'
 ```
 
+Refer [kubernetes.md](kubernetes.md) for more detailed and fine-tuned steps.
+
 ### Audit Security Issues for Pod
 
 `kube-copilot audit POD [NAMESPACE]` will audit security issues for a Pod:
