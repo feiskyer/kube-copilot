@@ -7,7 +7,7 @@ import tiktoken
 class KubeProcess():
     '''Wrapper for cloud native commands.'''
 
-    def __init__(self, command, max_tokens=4000, strip_newlines: bool = False, return_err_output: bool = False):
+    def __init__(self, command, max_tokens=3000, strip_newlines: bool = False, return_err_output: bool = False):
         """Initialize with stripping newlines."""
         self.strip_newlines = strip_newlines
         self.return_err_output = return_err_output

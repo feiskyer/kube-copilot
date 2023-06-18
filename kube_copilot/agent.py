@@ -43,13 +43,18 @@ class CopilotLLM:
 
 def get_chat_chain(verbose=True, model="gpt-4", additional_tools=None):
     '''Initialize the LLM chain with useful tools.'''
-    if os.getenv("OPENAI_API_TYPE") == "azure":
+    if os.getenv("OPENAI_API_TYPE") == "azure" or (os.getenv("OPENAI_API_BASE") is not None and "azure" in os.getenv("OPENAI_API_BASE")):
         engine = model.replace(".", "")
-        llm = ChatOpenAI(model_name=model, temperature=0,
-                         max_tokens=4000,
+        llm = ChatOpenAI(model_name=model,
+                         temperature=0,
+                         max_tokens=3000,
+                         request_timeout=120,
                          model_kwargs={"engine": engine})
     else:
-        llm = ChatOpenAI(model_name=model, temperature=0, max_tokens=4000)
+        llm = ChatOpenAI(model_name=model,
+                         temperature=0,
+                         max_tokens=3000,
+                         request_timeout=120)
 
     planner = load_chat_planner(llm=llm, system_prompt=get_planner_prompt())
     tools = [
@@ -85,7 +90,10 @@ def get_chat_chain(verbose=True, model="gpt-4", additional_tools=None):
         llm,
         tools,
         human_message_template=HUMAN_MESSAGE_TEMPLATE,
-        input_variables=["previous_steps", "current_step", "agent_scratchpad"],
+        input_variables=["previous_steps",
+                         "current_step",
+                         "agent_scratchpad"],
+        # TODO: Workaround for issue https://github.com/hwchase17/langchain/issues/1358.
         handle_parsing_errors="Check your output and make sure it conforms!",
     )
     agent_executor = AgentExecutor.from_agent_and_tools(
