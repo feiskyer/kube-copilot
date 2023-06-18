@@ -10,6 +10,7 @@ from langchain.experimental.plan_and_execute.executors.base import ChainExecutor
 from kube_copilot.shell import KubeProcess
 from kube_copilot.prompts import get_planner_prompt
 from langchain.agents.structured_chat.base import StructuredChatAgent
+from langchain.callbacks import StdOutCallbackHandler
 
 
 HUMAN_MESSAGE_TEMPLATE = """Previous steps: {previous_steps}
@@ -47,16 +48,13 @@ def get_chat_chain(verbose=True, model="gpt-4", additional_tools=None):
         engine = model.replace(".", "")
         llm = ChatOpenAI(model_name=model,
                          temperature=0,
-                         max_tokens=3000,
                          request_timeout=120,
                          model_kwargs={"engine": engine})
     else:
         llm = ChatOpenAI(model_name=model,
                          temperature=0,
-                         max_tokens=3000,
                          request_timeout=120)
 
-    planner = load_chat_planner(llm=llm, system_prompt=get_planner_prompt())
     tools = [
         Tool(
             name="kubectl",
@@ -96,9 +94,11 @@ def get_chat_chain(verbose=True, model="gpt-4", additional_tools=None):
         # TODO: Workaround for issue https://github.com/hwchase17/langchain/issues/1358.
         handle_parsing_errors="Check your output and make sure it conforms!",
     )
+
     agent_executor = AgentExecutor.from_agent_and_tools(
         agent=agent, tools=tools, verbose=verbose
     )
     executor = ChainExecutor(chain=agent_executor)
-
-    return PlanAndExecute(planner=planner, executor=executor, verbose=verbose)
+    planner = load_chat_planner(llm=llm, system_prompt=get_planner_prompt())
+    step_handler = StdOutCallbackHandler(color="green")
+    return PlanAndExecute(planner=planner, executor=executor, verbose=verbose, callbacks=[step_handler])

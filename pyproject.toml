@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "kube-copilot"
-version = "0.1.11"
+version = "0.1.12"
 description = "Kubernetes Copilot"
 authors = ["Pengfei Ni <feiskyer@gmail.com>"]
 readme = "README.md"
