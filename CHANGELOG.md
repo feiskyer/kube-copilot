@@ -1,3 +1,7 @@
+## v0.1.13
+
+- feat: improve the prompts and format outputs for easier reading
+
 ## v0.1.12
 
 - feat: print each operating steps and their responses

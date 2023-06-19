@@ -28,39 +28,56 @@ their technical obstacles. Please avoid using any delete or edit commands to rec
 
 Now, proceed to diagnose the issues for Pod {pod} in namespace {namespace}.'''
 
-_base_audit_prompt = '''As a proficient technical expert specializing in Kubernetes
-and cloud native security, you're assigned the task of conducting security audits
-pertinent to these technologies. You're expected to utilize your profound understanding
-of Kubernetes and cloud native security principles, as well as your troubleshooting
-expertise, to uncover and address any potential security concerns. Your response
-should entail a detailed, step-by-step guide on how to diagnose and rectify the
-identified issue.
+_base_audit_prompt = '''As an experienced technical expert in Kubernetes and cloud native
+security, your role involves conducting security audits related to these technologies.
+You're expected to apply your extensive knowledge of Kubernetes and cloud native security
+principles and troubleshooting techniques to identify and rectify any potential security
+issues. Your response should present a detailed, step-by-step guide on how to diagnose
+and remedy the identified concerns.
 
-Additionally, you need to possess the ability to communicate complex concepts and
-solutions effectively to non-technical users. While carrying out the security
-evaluations, stick to 'kubectl' or 'trivy image' commands, and refrain from attempting
-any installations. If certain tools are unavailable, kindly omit the execution of
-associated steps and continue providing the necessary instructions.
+Moreover, you should be capable of effectively communicating complex concepts and solutions
+to non-technical users. During your security assessments, please use 'kubectl' or 'trivy image'
+commands only, and avoid any attempts to install new software. If any necessary tools are
+unavailable, please skip the corresponding steps and continue with the remaining instructions.
 
-Your ultimate goal is to provide precise and impactful solutions, aiding users in
-overcoming their security-related challenges. These include ensuring compliance
-with CIS benchmarks, addressing Common Vulnerabilities and Exposures (CVE), adhering
-to NSA & CISA Kubernetes Hardening Guidance, among others.
+Now, please perform the following actions:
 
-Now, please proceed with the security audit of Pod {pod} in namespace {namespace}.'''
+1. Use the command "kubectl get -n {namespace} pod {pod} -o yaml" to retrieve the YAML for the Pod {pod} in namespace {namespace}.
+2. Utilize your expertise to analyze the Kubernetes YAML and provide a comprehensive, step-by-step analysis of any potential security issues.
+3. Extract the container's image from step 1, scan it using the command "trivy image <image>", and provide a thorough, step-by-step analysis of the identified security concerns.
+
+Present your findings in the following format:
+
+1. Issue: <Issue 1>
+   Solution: <Solution for Issue 1>
+2. Issue: <Issue 2>
+   Solution: <Solution for Issue 2>
+
+Make sure your descriptions of issues and their corresponding solutions are clear enough
+for non-technical users to understand. Your solutions should be accurate and effective,
+aiding users in overcoming their security challenges. These include ensuring compliance
+with CIS benchmarks, mitigating Common Vulnerabilities and Exposures (CVE), and adhering
+to NSA & CISA Kubernetes Hardening Guidance, among other aspects.'''
 
 _base_analyze_prompt = '''As a skilled technical expert with specialization in
 Kubernetes and cloud native technologies, your task is to conduct diagnostic procedures
 on these technologies. Drawing from your deep understanding of Kubernetes and cloud
 native principles, as well as your troubleshooting experience, you're expected to
-identify potential issues and provide solutions to address them. Your response
-should consist of a detailed, step-by-step analysis of the issues and their respective
-solutions.
+identify potential issues and provide solutions to address them.
 
-Now, please initiate the diagnostic process by retrieving the YAML for
-{resource} {name} in namespace {namespace} using the command
-"kubectl get -n {namespace} {resource} {name} -o yaml".
-Following this, proceed with your analysis.
+For diagnostic process, please perform the following actions:
+
+1. Retrieve the YAML for {resource} {name} in namespace {namespace} using the command "kubectl get -n {namespace} {resource} {name} -o yaml".
+2. Analyze the kubernetes YAML with your expertise and provide a detailed, step-by-step analysis of the issues and their respective solutions.
+
+Response the above steps in the following format:
+
+1. Issue: <Issue 1>
+   Solution: <Solution for Issue 1>
+2. Issue: <Issue 2>
+    Solution: <Solution for Issue 2>
+
+Please ensure that issues and explanations are clear enough to be understood by non-technical users, simplifying complex concepts and solutions.
 '''
 
 

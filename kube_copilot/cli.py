@@ -4,7 +4,7 @@ import logging
 import sys
 import click
 from kube_copilot.llm import init_openai
-from kube_copilot.agent import CopilotLLM
+from kube_copilot.chains import PlanAndExecuteLLM, ReActLLM
 from kube_copilot.prompts import (
     get_prompt,
     get_diagnose_prompt,
@@ -34,12 +34,6 @@ def add_options(options):
     return _add_options
 
 
-def get_llm_chain(verbose, model):
-    '''Get Copilot LLM chain'''
-    init_openai()
-    return CopilotLLM(verbose=verbose, model=model)
-
-
 @click.group()
 @click.version_option()
 def cli():
@@ -51,7 +45,7 @@ def cli():
 @add_options(cmd_options)
 def execute(instructions, verbose, model):
     '''Execute operations based on prompt instructions'''
-    chain = get_llm_chain(verbose, model)
+    chain = PlanAndExecuteLLM(verbose=verbose, model=model)
     result = chain.run(get_prompt(instructions))
     print(result)
 
@@ -62,7 +56,7 @@ def execute(instructions, verbose, model):
 @add_options(cmd_options)
 def diagnose(namespace, pod, verbose, model):
     '''Diagnose problems for a Pod'''
-    chain = get_llm_chain(verbose, model)
+    chain = PlanAndExecuteLLM(verbose=verbose, model=model)
     result = chain.run(get_diagnose_prompt(namespace, pod))
     print(result)
 
@@ -73,7 +67,7 @@ def diagnose(namespace, pod, verbose, model):
 @add_options(cmd_options)
 def audit(namespace, pod, verbose, model):
     '''Audit security issues for a Pod'''
-    chain = get_llm_chain(verbose, model)
+    chain = ReActLLM(verbose=verbose, model=model)
     result = chain.run(get_audit_prompt(namespace, pod))
     print(result)
 
@@ -85,13 +79,14 @@ def audit(namespace, pod, verbose, model):
 @add_options(cmd_options)
 def analyze(resource, namespace, name, verbose, model):
     '''Analyze potential issues for a given resource'''
-    chain = get_llm_chain(verbose, model)
+    chain = ReActLLM(verbose=verbose, model=model)
     result = chain.run(get_analyze_prompt(namespace, resource, name))
     print(result)
 
 
 def main():
     '''Main function'''
+    init_openai()
     cli()
 
 
