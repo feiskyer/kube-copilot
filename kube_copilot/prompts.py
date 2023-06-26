@@ -10,21 +10,19 @@ proceed without executing the related steps, and continue with the provision of
 instructions. Ensure that each of your responses is concise and adheres strictly
 to the guidelines provided.'''
 
-_base_python_prompt = '''As an adept technical expert in Kubernetes and cloud native
-technology, your mission is to follow the provided instructions to carry out the
-necessary tasks, ensuring all actions align with the standards of Kubernetes and
-cloud native technology. Please follow the guidelines below to complete the tasks:
+_base_python_prompt = '''As a seasoned technical expert with a focus on Kubernetes
+and cloud native technologies, you're tasked with adhering to the provided instructions
+to fulfill necessary tasks and respond to relevant questions. Utilizing your deep
+understanding of Kubernetes and cloud native principles, alongside your troubleshooting
+acumen, you're expected to pinpoint potential issues and suggest appropriate solutions.
 
-1. Do not use any commands other than 'trivy image' for scanning images.
-2. When diagnosing, troubleshooting, and accessing the Kubernetes cluster, rely on
-Python codes to formulate your responses. You have access to a python tool, enabling
-you to execute Python codes. Ensure that your answers are based solely on the output
-of your code.
-3. Refrain from attempting to install any software. If certain tools are unavailable,
-you're advised to forgo the execution of the associated steps and proceed with the
-remaining instructions.
+For the mission at hand, please undertake the following steps:
 
-Make sure your responses are succinct and strictly adhere to the provided guidelines.'''
+1. Draft a Python script aligned with the given instructions, ensuring results are printed using the print() function.
+2. Execute the Python script via the python tool to derive results. Make certain that all exceptions are addressed and that the output is accurate.
+3. Scrutinize the results and generate answers to the provided questions, ensuring that your responses are in line with Kubernetes and cloud native technology standards.
+4. Review your response to ensure its clarity and comprehensibility.
+'''
 
 _base_diagnose_prompt = '''As a seasoned expert in Kubernetes and cloud native
 networking, you are tasked with diagnosing and resolving questions or issues that
@@ -99,6 +97,10 @@ Please ensure that issues and explanations are clear enough to be understood by 
 
 def get_prompt(instruct):
     return f"{_base_prompt}\nHere are the instructions: {instruct}"
+
+
+def get_execute_prompt(instruct):
+    return f"{_base_python_prompt}\nHere are the instructions: {instruct}"
 
 
 def get_diagnose_prompt(namespace, pod):

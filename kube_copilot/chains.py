@@ -9,11 +9,11 @@ from langchain.agents.structured_chat.base import StructuredChatAgent
 from langchain.utilities import GoogleSearchAPIWrapper
 from langchain.experimental.plan_and_execute import PlanAndExecute, load_chat_planner
 from langchain.experimental.plan_and_execute.executors.base import ChainExecutor
-from sklearn.metrics import max_error
 from kube_copilot.shell import KubeProcess
 from kube_copilot.prompts import get_planner_prompt
 from langchain.agents.structured_chat.base import StructuredChatAgent
 from langchain.callbacks import StdOutCallbackHandler
+# from langchain.memory import ConversationBufferMemory
 
 
 HUMAN_MESSAGE_TEMPLATE = """Previous steps: {previous_steps}
@@ -26,18 +26,19 @@ Current objective: {current_step}
 class PlanAndExecuteLLM:
     '''Wrapper for LLM chain.'''
 
-    def __init__(self, verbose=True, model="gpt-4", additional_tools=None):
+    def __init__(self, verbose=True, model="gpt-4", additional_tools=None, enable_python=False):
         '''Initialize the LLM chain.'''
         self.chain = self.get_chain(
-            verbose, model, additional_tools=additional_tools)
+            verbose, model, additional_tools=additional_tools, enable_python=enable_python)
 
     def run(self, instructions):
         '''Run the LLM chain.'''
         return self.chain.run(instructions)
 
-    def get_chain(self, verbose=True, model="gpt-4", additional_tools=None):
+    def get_chain(self, verbose=True, model="gpt-4", additional_tools=None, enable_python=False):
         '''Initialize the LLM chain with useful tools.'''
-        llm, tools = get_llm_tools(model, additional_tools)
+        llm, tools = get_llm_tools(
+            model, additional_tools, enable_python=enable_python)
 
         # executor = load_agent_executor(llm, tools, verbose=verbose)
         agent = StructuredChatAgent.from_llm_and_tools(
@@ -48,8 +49,8 @@ class PlanAndExecuteLLM:
                              "current_step",
                              "agent_scratchpad"],
             # TODO: Workaround for issue https://github.com/hwchase17/langchain/issues/1358.
-            handle_parsing_errors="Check your output and make sure it conforms!",
             # handle_parsing_errors=handle_parsing_error,
+            handle_parsing_errors="Check your output and make sure it conforms!",
         )
 
         agent_executor = AgentExecutor.from_agent_and_tools(
@@ -68,27 +69,30 @@ class PlanAndExecuteLLM:
 class ReActLLM:
     '''Wrapper for LLM chain.'''
 
-    def __init__(self, verbose=True, model="gpt-4", additional_tools=None):
+    def __init__(self, verbose=True, model="gpt-4", additional_tools=None, enable_python=False):
         '''Initialize the LLM chain.'''
         self.chain = self.get_chain(
-            verbose, model, additional_tools=additional_tools)
+            verbose, model, additional_tools=additional_tools, enable_python=enable_python)
 
     def run(self, instructions):
         '''Run the LLM chain.'''
         return self.chain.run(instructions)
 
-    def get_chain(self, verbose=True, model="gpt-4", additional_tools=None):
+    def get_chain(self, verbose=True, model="gpt-4", additional_tools=None, enable_python=False):
         '''Initialize the LLM chain with useful tools.'''
-        llm, tools = get_llm_tools(model, additional_tools)
-        agent = initialize_agent(llm=llm,
-                                 tools=tools,
+        llm, tools = get_llm_tools(model, additional_tools, enable_python)
+        # memory = ConversationBufferMemory(
+        #     memory_key="chat_history", return_messages=True)
+        agent = initialize_agent(tools=tools,
+                                 llm=llm,
+                                 #  memory=memory,
                                  verbose=verbose,
-                                 type=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+                                 agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
                                  handle_parsing_errors=handle_parsing_error)
         return agent
 
 
-def get_llm_tools(model, additional_tools):
+def get_llm_tools(model, additional_tools, enable_python=False):
     '''Initialize the LLM chain with useful tools.'''
     if os.getenv("OPENAI_API_TYPE") == "azure" or (os.getenv("OPENAI_API_BASE") is not None and "azure" in os.getenv("OPENAI_API_BASE")):
         engine = model.replace(".", "")
@@ -103,12 +107,6 @@ def get_llm_tools(model, additional_tools):
 
     tools = [
         Tool(
-            name="python",
-            func=PythonREPLTool(
-                callbacks=[HumanApprovalCallbackHandler(approve=python_approval)]).run,
-            description="Useful for executing Python code with Kubernetes Python SDK client. Input: Python code. Output: the result of the Python code."
-        ),
-        Tool(
             name="kubectl",
             description="Useful for executing kubectl command to query information from kubernetes cluster. Input: a kubectl get command. Output: the yaml for the resource.",
             func=KubeProcess(command="kubectl").run,
@@ -119,6 +117,23 @@ def get_llm_tools(model, additional_tools):
             func=KubeProcess(command="trivy").run,
         ),
     ]
+
+    if enable_python:
+        tools = [
+            Tool(
+                name="python",
+                func=PythonREPLTool(
+                    callbacks=[HumanApprovalCallbackHandler(
+                        approve=python_approval)]
+                ).run,
+                description="Useful for executing Python code with Kubernetes Python SDK client. Results should be print out by calling `print(...)`. Input: Python code. Output: the result from the Python code's print()."
+            ),
+            Tool(
+                name="trivy",
+                description="Useful for executing trivy image command to scan images for vulnerabilities. Input: a trivy image command. Output: the vulnerabilities found in the image.",
+                func=KubeProcess(command="trivy").run,
+            ),
+        ]
 
     if os.getenv("GOOGLE_API_KEY") and os.getenv("GOOGLE_CSE_ID"):
         tools += [
@@ -143,10 +158,9 @@ def handle_parsing_error(error) -> str:
 
 
 def python_approval(_input: str) -> bool:
-    msg = (
-        "Do you approve to execute the following Python codes? "
-        "Anything except 'Y'/'Yes' (case-insensitive) will be treated as a no."
-    )
-    msg += "\n\n" + _input + "\n"
+    red_color = "\033[31m"
+    reset_color = "\033[0m"
+    msg = "Generated Python code:\n```\n" + _input + "\n```\n"
+    msg += f'{red_color}Do you approve to execute the above Python code? (Y/Yes){reset_color}'
     resp = input(msg)
-    return resp.lower() in ("yes", "y")
+    return resp.lower().strip() in ("yes", "y", "")

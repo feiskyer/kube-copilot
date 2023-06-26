@@ -47,7 +47,7 @@ def cli():
 @add_options(cmd_options)
 def execute(instructions, verbose, model):
     '''Execute operations based on prompt instructions'''
-    chain = PlanAndExecuteLLM(verbose=verbose, model=model)
+    chain = ReActLLM(verbose=verbose, model=model, enable_python=True)
     result = chain.run(get_prompt(instructions))
     print(result)
 
@@ -58,7 +58,7 @@ def execute(instructions, verbose, model):
 @add_options(cmd_options)
 def diagnose(namespace, pod, verbose, model):
     '''Diagnose problems for a Pod'''
-    chain = PlanAndExecuteLLM(verbose=verbose, model=model)
+    chain = PlanAndExecuteLLM(verbose=verbose, model=model, enable_python=True)
     result = chain.run(get_diagnose_prompt(namespace, pod))
     print(result)
 
