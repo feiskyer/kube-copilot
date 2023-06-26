@@ -3,10 +3,13 @@ import os
 from langchain.chat_models import ChatOpenAI
 from langchain.agents import AgentType, Tool, initialize_agent
 from langchain.agents.agent import AgentExecutor
+from langchain.tools.python.tool import PythonREPLTool
+from langchain.callbacks import HumanApprovalCallbackHandler
 from langchain.agents.structured_chat.base import StructuredChatAgent
 from langchain.utilities import GoogleSearchAPIWrapper
 from langchain.experimental.plan_and_execute import PlanAndExecute, load_chat_planner
 from langchain.experimental.plan_and_execute.executors.base import ChainExecutor
+from sklearn.metrics import max_error
 from kube_copilot.shell import KubeProcess
 from kube_copilot.prompts import get_planner_prompt
 from langchain.agents.structured_chat.base import StructuredChatAgent
@@ -46,6 +49,7 @@ class PlanAndExecuteLLM:
                              "agent_scratchpad"],
             # TODO: Workaround for issue https://github.com/hwchase17/langchain/issues/1358.
             handle_parsing_errors="Check your output and make sure it conforms!",
+            # handle_parsing_errors=handle_parsing_error,
         )
 
         agent_executor = AgentExecutor.from_agent_and_tools(
@@ -55,7 +59,10 @@ class PlanAndExecuteLLM:
         planner = load_chat_planner(
             llm=llm, system_prompt=get_planner_prompt())
         step_handler = StdOutCallbackHandler(color="green")
-        return PlanAndExecute(planner=planner, executor=executor, verbose=verbose, callbacks=[step_handler])
+        return PlanAndExecute(planner=planner,
+                              executor=executor,
+                              verbose=verbose,
+                              callbacks=[step_handler])
 
 
 class ReActLLM:
@@ -96,6 +103,12 @@ def get_llm_tools(model, additional_tools):
 
     tools = [
         Tool(
+            name="python",
+            func=PythonREPLTool(
+                callbacks=[HumanApprovalCallbackHandler(approve=python_approval)]).run,
+            description="Useful for executing Python code with Kubernetes Python SDK client. Input: Python code. Output: the result of the Python code."
+        ),
+        Tool(
             name="kubectl",
             description="Useful for executing kubectl command to query information from kubernetes cluster. Input: a kubectl get command. Output: the yaml for the resource.",
             func=KubeProcess(command="kubectl").run,
@@ -115,7 +128,7 @@ def get_llm_tools(model, additional_tools):
                     google_api_key=os.getenv("GOOGLE_API_KEY"),
                     google_cse_id=os.getenv("GOOGLE_CSE_ID"),
                 ).run,
-                description="search the web for current events or current state of the world"
+                description="Useful for searching the web for current events or current state of the world"
             )
         ]
 
@@ -127,3 +140,13 @@ def get_llm_tools(model, additional_tools):
 def handle_parsing_error(error) -> str:
     '''Helper function to handle parsing errors from LLM.'''
     return str(error).split("Could not parse LLM output:")[1].strip().removeprefix('`').removesuffix('`')
+
+
+def python_approval(_input: str) -> bool:
+    msg = (
+        "Do you approve to execute the following Python codes? "
+        "Anything except 'Y'/'Yes' (case-insensitive) will be treated as a no."
+    )
+    msg += "\n\n" + _input + "\n"
+    resp = input(msg)
+    return resp.lower() in ("yes", "y")

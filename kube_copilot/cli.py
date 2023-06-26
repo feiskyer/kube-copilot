@@ -5,11 +5,13 @@ import sys
 import click
 from kube_copilot.llm import init_openai
 from kube_copilot.chains import PlanAndExecuteLLM, ReActLLM
+from kube_copilot.shell import KubeProcess
 from kube_copilot.prompts import (
     get_prompt,
     get_diagnose_prompt,
     get_analyze_prompt,
-    get_audit_prompt
+    get_audit_prompt,
+    get_generate_prompt
 )
 
 
@@ -82,6 +84,23 @@ def analyze(resource, namespace, name, verbose, model):
     chain = ReActLLM(verbose=verbose, model=model)
     result = chain.run(get_analyze_prompt(namespace, resource, name))
     print(result)
+
+
+@cli.command(help="generate Kubernetes manifests")
+@click.argument('instructions')
+@add_options(cmd_options)
+def generate(instructions, verbose, model):
+    '''Generate Kubernetes manifests'''
+    chain = ReActLLM(verbose=verbose, model=model)
+    result = chain.run(get_generate_prompt(instructions))
+    print(result)
+
+    # Apply the generated manifests in cluster
+    if click.confirm('Do you approve to apply the generated manifests to cluster?'):
+        manifests = result.removeprefix(
+            '```').removeprefix('yaml').removesuffix('```')
+        print(KubeProcess(command="kubectl").run(
+            'kubectl apply -f -', input=bytes(manifests, 'utf-8')))
 
 
 def main():

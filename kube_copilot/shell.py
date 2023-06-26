@@ -15,14 +15,14 @@ class KubeProcess():
         self.max_tokens = max_tokens
         self.encoding = tiktoken.encoding_for_model("gpt-3.5-turbo-0301")
 
-    def run(self, args: Union[str, List[str]]) -> str:
+    def run(self, args: Union[str, List[str]], input=None) -> str:
         '''Run the command.'''
         if isinstance(args, str):
             args = [args]
         commands = ";".join(args)
         if not commands.startswith(self.command):
             commands = f'{self.command} {commands}'
-        result = self.exec(commands)
+        result = self.exec(commands, input=input)
 
         # TODO: workarounds for the following context length error with ChatGPT
         #   https://github.com/hwchase17/langchain/issues/2140
@@ -33,7 +33,7 @@ class KubeProcess():
             tokens = self.encoding.encode(result)
         return result
 
-    def exec(self, commands: Union[str, List[str]]) -> str:
+    def exec(self, commands: Union[str, List[str]], input=None) -> str:
         """Run commands and return final output."""
         if isinstance(commands, str):
             commands = [commands]
@@ -43,6 +43,7 @@ class KubeProcess():
                 commands,
                 shell=True,
                 check=True,
+                input=input,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
             ).stdout.decode()
