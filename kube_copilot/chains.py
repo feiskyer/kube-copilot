@@ -9,11 +9,12 @@ from langchain.agents.structured_chat.base import StructuredChatAgent
 from langchain.utilities import GoogleSearchAPIWrapper
 from langchain.experimental.plan_and_execute import PlanAndExecute, load_chat_planner
 from langchain.experimental.plan_and_execute.executors.base import ChainExecutor
-from kube_copilot.shell import KubeProcess
-from kube_copilot.prompts import get_planner_prompt
 from langchain.agents.structured_chat.base import StructuredChatAgent
 from langchain.callbacks import StdOutCallbackHandler
 # from langchain.memory import ConversationBufferMemory
+from kube_copilot.shell import KubeProcess
+from kube_copilot.prompts import get_planner_prompt
+from kube_copilot.output import ChatOutputParser
 
 
 HUMAN_MESSAGE_TEMPLATE = """Previous steps: {previous_steps}
@@ -49,7 +50,6 @@ class PlanAndExecuteLLM:
                              "current_step",
                              "agent_scratchpad"],
             # TODO: Workaround for issue https://github.com/hwchase17/langchain/issues/1358.
-            # handle_parsing_errors=handle_parsing_error,
             handle_parsing_errors="Check your output and make sure it conforms!",
         )
 
@@ -88,7 +88,11 @@ class ReActLLM:
                                  #  memory=memory,
                                  verbose=verbose,
                                  agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
-                                 handle_parsing_errors=handle_parsing_error)
+                                 handle_parsing_errors=handle_parsing_error,
+                                 agent_kwargs={
+                                     "output_parser": ChatOutputParser(),
+                                 },
+                                 )
         return agent
 
 
@@ -154,13 +158,18 @@ def get_llm_tools(model, additional_tools, enable_python=False):
 
 def handle_parsing_error(error) -> str:
     '''Helper function to handle parsing errors from LLM.'''
-    return str(error).split("Could not parse LLM output:")[1].strip().removeprefix('`').removesuffix('`')
+    response = str(error).split("Could not parse LLM output:")[1].strip()
+    if not response.startswith('```'):
+        response = response.removeprefix('`')
+    if not response.endswith('```'):
+        response = response.removesuffix('`')
+    return response
 
 
 def python_approval(_input: str) -> bool:
     red_color = "\033[31m"
     reset_color = "\033[0m"
-    msg = "Generated Python code:\n```\n" + _input + "\n```\n"
+    msg = "\nGenerated Python code:\n```\n" + _input + "\n```\n"
     msg += f'{red_color}Do you approve to execute the above Python code? (Y/Yes){reset_color}'
     resp = input(msg)
     return resp.lower().strip() in ("yes", "y", "")

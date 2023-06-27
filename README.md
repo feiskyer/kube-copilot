@@ -46,6 +46,7 @@ Commands:
   audit     audit security issues for a Pod
   diagnose  diagnose problems for a Pod
   execute   execute operations based on prompt instructions
+  generate  generate Kubernetes manifests
 ```
 
 Running as container:
@@ -94,7 +95,6 @@ Options:
 
 `kube-copilot analyze RESOURCE NAME [NAMESPACE]` will analyze potential issues for the given resource object:
 
-
 ```sh
 Usage: kube-copilot analyze [OPTIONS] RESOURCE NAME [NAMESPACE]
 
@@ -120,6 +120,23 @@ Options:
   --verbose      Enable verbose information of copilot execution steps
   --model MODEL  OpenAI model to use for copilot execution, default is gpt-4
   --help         Show this message and exit.
+```
+
+### Generate Kubernetes Manifests
+
+Use the `kube-copilot generate` command to create Kubernetes manifests based on
+the provided prompt instructions. After generating the manifests, you will be
+prompted to confirm whether you want to apply them.
+
+```sh
+Usage: kube-copilot generate [OPTIONS] INSTRUCTIONS
+
+  generate Kubernetes manifests
+
+Options:
+  --verbose     Enable verbose information of copilot execution steps
+  --model TEXT  OpenAI model to use for copilot execution, default is gpt-4
+  --help        Show this message and exit.
 ```
 
 ## Contribution

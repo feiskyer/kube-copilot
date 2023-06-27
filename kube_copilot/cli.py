@@ -58,7 +58,8 @@ def execute(instructions, verbose, model):
 @add_options(cmd_options)
 def diagnose(namespace, pod, verbose, model):
     '''Diagnose problems for a Pod'''
-    chain = PlanAndExecuteLLM(verbose=verbose, model=model, enable_python=True)
+    # chain = PlanAndExecuteLLM(verbose=verbose, model=model, enable_python=True)
+    chain = ReActLLM(verbose=verbose, model=model, enable_python=True)
     result = chain.run(get_diagnose_prompt(namespace, pod))
     print(result)
 
