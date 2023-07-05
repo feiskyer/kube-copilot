@@ -1,3 +1,7 @@
+## v0.1.14
+
+- feat: add generate command to create Kubernetes manifests based on the provided prompt instructions.
+
 ## v0.1.13
 
 - feat: improve the prompts and format outputs for easier reading

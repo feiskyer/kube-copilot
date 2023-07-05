@@ -2,13 +2,11 @@
 
 Kubernetes Copilot powered by OpenAI.
 
-**Status:** Experimental.
-
-**Caution:** Copilot may generate and execute unsuitable operations; avoid using in production environments! For improved reasoning performance, **GPT-4** is highly recommended (although GPT-3.5 is also supported).
-
 Features:
 
-- Automate Kubernetes cluster operations using Plan-and-Solve prompts with GPT-4.
+- Automate Kubernetes cluster operations using ChatGPT (GPT-4 or GPT-3.5).
+- Diagnose and analyze the potential issues for Kubernetes workloads.
+- Generate the Kubernetes manifests based on the provided prompt instructions.
 - Utilize native kubectl and trivy commands for Kubernetes cluster access and security vulnerability scanning.
 - Access the web and perform Google searches without leaving the terminal.
 
