@@ -5,7 +5,8 @@ __pycache__/
 .DS_Store
 
 # Helm files
-.cr-release-packages/
+.cr-index
+.cr-release-packages
 index.yaml
 
 # C extensions
