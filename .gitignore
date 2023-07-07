@@ -9,7 +9,6 @@ __pycache__/
 .cr-index
 .cr-release-packages
 index.yaml
->>>>>>> main
 
 # Helm files
 .cr-release-packages/
