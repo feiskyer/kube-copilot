@@ -41,14 +41,16 @@ resource_name = st.text_input(
     "Resource Name", key="resource_name", placeholder="nginx")
 
 if st.button("Analyze"):
-    if not openai_api_key:
-        st.info("Please add your OpenAI API key to continue.")
-        st.stop()
+    if not os.getenv("OPENAI_API_KEY", ""):
+        if not openai_api_key:
+            st.info("Please add your OpenAI API key to continue.")
+            st.stop()
 
-    os.environ["OPENAI_API_KEY"] = openai_api_key
-    os.environ["OPENAI_API_BASE"] = openai_api_base
-    os.environ["GOOGLE_API_KEY"] = google_api_key
-    os.environ["GOOGLE_CSE_ID"] = google_cse_id
+        os.environ["OPENAI_API_KEY"] = openai_api_key
+        os.environ["OPENAI_API_BASE"] = openai_api_base
+        os.environ["GOOGLE_API_KEY"] = google_api_key
+        os.environ["GOOGLE_CSE_ID"] = google_cse_id
+
     init_openai()
 
     if not namespace or not resource_type or not resource_name:

@@ -32,7 +32,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
-          - streamlit
+          - /usr/local/bin/streamlit
           - run
           - /app/Home.py
           env:

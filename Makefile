@@ -22,6 +22,9 @@ release-helm:
 	cr upload --owner feiskyer --git-repo kube-copilot --packages-with-index --token $(GITHUB_TOKEN) --push --skip-existing
 	cr index --owner feiskyer --git-repo kube-copilot  --packages-with-index --index-path . --token $(GITHUB_TOKEN) --push
 
+.PHONY: release
+release: publish release-helm
+
 .PHONY: clean
 clean:
 	rm -rf dist

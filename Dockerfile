@@ -24,5 +24,6 @@ RUN pip install /tmp/*.whl && rm -f /tmp/*.whl
 COPY web /app
 
 USER copilot
+COPY web/config.toml /home/copilot/.streamlit/config.toml
 
 ENTRYPOINT [ "/usr/local/bin/kube-copilot" ]
