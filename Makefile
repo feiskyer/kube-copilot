@@ -33,7 +33,7 @@ release-helm:
 
 .PHONY: release
 release: publish release-helm
-	gh release create v$(shell poetry version -s) --generate-notes
+	gh release create v$(shell poetry version -s)
 
 .PHONY: clean
 clean:

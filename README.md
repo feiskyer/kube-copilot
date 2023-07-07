@@ -12,9 +12,9 @@ Features:
 
 ## Install
 
-### Run in Kubernetes (recommended)
+### Run in Kubernetes
 
-**Option 1: Web UI with Helm**
+**Option 1: Web UI with Helm (recommended)**
 
 ```sh
 # Option 1: OpenAI
@@ -64,7 +64,11 @@ pip install kube-copilot
   - For [Azure OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart?tabs=command-line&pivots=rest-api#retrieve-key-and-endpoint), also set `OPENAI_API_TYPE=azure` and `OPENAI_API_BASE=https://<replace-this>.openai.azure.com/`.
 - Google search is disabled by default. To enable it, set `GOOGLE_API_KEY` and `GOOGLE_CSE_ID` (obtain from [here](https://cloud.google.com/docs/authentication/api-keys?visit_id=638154888929258210-4085587461) and [here](http://www.google.com/cse/)).
 
-## How to use
+## How to use web UI
+
+![image-20230707191237629](assets/preview.jpg)
+
+## How to use CLI
 
 Running directly in the terminal:
 
