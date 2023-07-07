@@ -3,6 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 .cr-release-packages/
+.DS_Store
+
+# Helm files
+.cr-index
+.cr-release-packages
+index.yaml
+>>>>>>> main
 
 # C extensions
 *.so
