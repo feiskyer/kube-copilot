@@ -21,6 +21,7 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
 
 COPY --from=builder /app/dist/*.whl /tmp
 RUN pip install /tmp/*.whl && rm -f /tmp/*.whl
+COPY web /app
 
 USER copilot
 

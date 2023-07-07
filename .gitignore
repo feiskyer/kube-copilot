@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Helm files
+.cr-release-packages/
+index.yaml
+
 # C extensions
 *.so
 

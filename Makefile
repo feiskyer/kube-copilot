@@ -16,6 +16,12 @@ install: build
 publish: build
 	poetry publish
 
+.PHONY: release-helm
+release-helm:
+	cr package ./helm/kube-copilot
+	cr upload --owner feiskyer --git-repo kube-copilot --packages-with-index --token $(GITHUB_TOKEN) --push --skip-existing
+	cr index --owner feiskyer --git-repo kube-copilot  --packages-with-index --index-path . --token $(GITHUB_TOKEN) --push
+
 .PHONY: clean
 clean:
 	rm -rf dist
