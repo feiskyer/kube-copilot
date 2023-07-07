@@ -11,6 +11,10 @@ __pycache__/
 index.yaml
 >>>>>>> main
 
+# Helm files
+.cr-release-packages/
+index.yaml
+
 # C extensions
 *.so
 

@@ -18,7 +18,6 @@ publish: build
 
 .PHONY: release-helm
 release-helm:
-	rm -f ./.cr-release-packages/kube-copilot-*.tgz
 	cr package ./helm/kube-copilot
 	cr upload --owner feiskyer --git-repo kube-copilot --packages-with-index --token $(GITHUB_TOKEN) --push --skip-existing
 	cr index --owner feiskyer --git-repo kube-copilot  --packages-with-index --index-path . --token $(GITHUB_TOKEN) --push
