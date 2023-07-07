@@ -5,7 +5,6 @@ import sys
 
 import streamlit as st
 from langchain.callbacks import StreamlitCallbackHandler
-from traitlets import default
 
 from kube_copilot.chains import ReActLLM
 from kube_copilot.llm import init_openai

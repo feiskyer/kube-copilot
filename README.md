@@ -17,12 +17,21 @@ Features:
 **Option 1: Web UI with Helm**
 
 ```sh
+# Option 1: OpenAI
 helm install kube-copilot kube-copilot \
   --repo https://feisky.xyz/kube-copilot \
   --set openai.apiModel=gpt-4 \
   --set openai.apiKey=$OPENAI_API_KEY \
   --set openai.apiBase=$OPENAI_API_BASE
 
+# Option 2: Azure OpenAI Service
+helm install kube-copilot kube-copilot \
+  --repo https://feisky.xyz/kube-copilot \
+  --set openai.apiModel=gpt-4 \
+  --set openai.apiKey=$OPENAI_API_KEY \
+  --set openai.apiBase=$OPENAI_API_BASE
+
+# Forwarding requests to the service
 kubectl port-forward service/kube-copilot 8080:80
 echo "Visit http://127.0.0.1:8080 to use the copilot"
 ```

@@ -29,8 +29,8 @@ users:
 '''
 
 
-def write_kubeconfig(kubeconfig):
-    if not os.getenv("KUBERNETES_SERVICE_HOST", None):
+def setup_kubeconfig():
+    if os.getenv("KUBERNETES_SERVICE_HOST", "") == "":
         # not running inside Pod
         return
 
@@ -43,9 +43,6 @@ def write_kubeconfig(kubeconfig):
         return
 
     os.makedirs(kubeconfig_path, exist_ok=True)
+    kubeconfig = get_kubeconfig()
     with open(kubeconfig_file, "w") as f:
         f.write(kubeconfig)
-
-
-def setup_kubeconfig():
-    write_kubeconfig(get_kubeconfig())

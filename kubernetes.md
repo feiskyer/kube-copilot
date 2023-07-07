@@ -2,7 +2,7 @@
 
 ## Web UI with Helm (recommended)
 
-### Install with OpenAI
+### Option 1: Install with OpenAI
 
 ```sh
 helm install kube-copilot kube-copilot \
@@ -11,7 +11,7 @@ helm install kube-copilot kube-copilot \
   --set openai.apiKey=$OPENAI_API_KEY
 ```
 
-### Install with Azure OpenAI Service
+### Option 2: Install with Azure OpenAI Service
 
 ```sh
 helm install kube-copilot kube-copilot \
@@ -19,6 +19,18 @@ helm install kube-copilot kube-copilot \
   --set openai.apiModel=gpt-4 \
   --set openai.apiKey=$OPENAI_API_KEY \
   --set openai.apiBase=$OPENAI_API_BASE
+```
+
+### Option 3: Azure OpenAI Service + Google Search
+
+```sh
+helm install kube-copilot kube-copilot \
+  --repo https://feisky.xyz/kube-copilot \
+  --set openai.apiModel=gpt-4 \
+  --set openai.apiBase=$OPENAI_API_BASE \
+  --set openai.apiKey=$OPENAI_API_KEY \
+  --set google.apiKey=$GOOGLE_API_KEY \
+  --set google.cseId=$GOOGLE_CSE_ID
 ```
 
 ## Manually Install for CLI mode
