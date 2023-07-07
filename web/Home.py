@@ -9,10 +9,14 @@ from langchain.callbacks import StreamlitCallbackHandler
 from kube_copilot.chains import ReActLLM
 from kube_copilot.llm import init_openai
 from kube_copilot.prompts import get_prompt
+from kube_copilot.kubeconfig import setup_kubeconfig
 
-logging.basicConfig(stream=sys.stdout, level=logging.CRITICAL)
+# setup logging
+logging.basicConfig(stream=sys.stdout, level=logging.WARNING)
 logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 
+# setup kubeconfig when running inside Pod
+setup_kubeconfig()
 
 st.set_page_config(page_title="Kubernetes Copilot", page_icon="💬")
 st.title("💬 Kubernetes Copilot")
