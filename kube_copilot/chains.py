@@ -11,7 +11,7 @@ from langchain.experimental.plan_and_execute import PlanAndExecute, load_chat_pl
 from langchain.experimental.plan_and_execute.executors.base import ChainExecutor
 from langchain.agents.structured_chat.base import StructuredChatAgent
 from langchain.callbacks import StdOutCallbackHandler
-# from langchain.memory import ConversationBufferMemory
+from langchain.memory import ConversationBufferMemory
 from kube_copilot.shell import KubeProcess
 from kube_copilot.prompts import get_planner_prompt
 from kube_copilot.output import ChatOutputParser
@@ -69,23 +69,26 @@ class PlanAndExecuteLLM:
 class ReActLLM:
     '''Wrapper for LLM chain.'''
 
-    def __init__(self, verbose=True, model="gpt-4", additional_tools=None, enable_python=False):
+    def __init__(self, verbose=True, model="gpt-4", additional_tools=None, enable_python=False, auto_approve=False):
         '''Initialize the LLM chain.'''
+        self.memory = ConversationBufferMemory(
+            memory_key="chat_history", return_messages=True)
         self.chain = self.get_chain(
-            verbose, model, additional_tools=additional_tools, enable_python=enable_python)
+            verbose, model, additional_tools=additional_tools,
+            enable_python=enable_python, auto_approve=auto_approve)
 
-    def run(self, instructions):
+    def run(self, instructions, callbacks=None):
         '''Run the LLM chain.'''
-        return self.chain.run(instructions)
+        return self.chain.run(instructions, callbacks=callbacks)
 
-    def get_chain(self, verbose=True, model="gpt-4", additional_tools=None, enable_python=False):
+    def get_chain(self, verbose=True, model="gpt-4", additional_tools=None, enable_python=False, auto_approve=False):
         '''Initialize the LLM chain with useful tools.'''
-        llm, tools = get_llm_tools(model, additional_tools, enable_python)
-        # memory = ConversationBufferMemory(
-        #     memory_key="chat_history", return_messages=True)
+        llm, tools = get_llm_tools(
+            model, additional_tools, enable_python, auto_approve=auto_approve)
+
         agent = initialize_agent(tools=tools,
                                  llm=llm,
-                                 #  memory=memory,
+                                 memory=self.memory,
                                  verbose=verbose,
                                  agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
                                  handle_parsing_errors=handle_parsing_error,
@@ -96,7 +99,7 @@ class ReActLLM:
         return agent
 
 
-def get_llm_tools(model, additional_tools, enable_python=False):
+def get_llm_tools(model, additional_tools, enable_python=False, auto_approve=False):
     '''Initialize the LLM chain with useful tools.'''
     if os.getenv("OPENAI_API_TYPE") == "azure" or (os.getenv("OPENAI_API_BASE") is not None and "azure" in os.getenv("OPENAI_API_BASE")):
         engine = model.replace(".", "")
@@ -123,13 +126,16 @@ def get_llm_tools(model, additional_tools, enable_python=False):
     ]
 
     if enable_python:
+        python_tool = PythonREPLTool(
+            callbacks=[HumanApprovalCallbackHandler(
+                approve=python_approval)]
+        )
+        if auto_approve:
+            python_tool = PythonREPLTool()
         tools = [
             Tool(
                 name="python",
-                func=PythonREPLTool(
-                    callbacks=[HumanApprovalCallbackHandler(
-                        approve=python_approval)]
-                ).run,
+                func=python_tool.run,
                 description="Useful for executing Python code with Kubernetes Python SDK client. Results should be print out by calling `print(...)`. Input: Python code. Output: the result from the Python code's print()."
             ),
             Tool(
