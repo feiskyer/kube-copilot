@@ -1,6 +1,27 @@
 # Run in Kubernetes
 
-## With readonly service account (recommended)
+## Web UI with Helm (recommended)
+
+### Install with OpenAI
+
+```sh
+helm install kube-copilot kube-copilot \
+  --repo https://feisky.xyz/kube-copilot \
+  --set openai.apiModel=gpt-4 \
+  --set openai.apiKey=$OPENAI_API_KEY
+```
+
+### Install with Azure OpenAI Service
+
+```sh
+helm install kube-copilot kube-copilot \
+  --repo https://feisky.xyz/kube-copilot \
+  --set openai.apiModel=gpt-4 \
+  --set openai.apiKey=$OPENAI_API_KEY \
+  --set openai.apiBase=$OPENAI_API_BASE
+```
+
+## Manually Install for CLI mode
 
 Create RBAC rule and binding:
 
@@ -105,7 +126,7 @@ kubectl run -it --rm copilot \
   -- execute --verbose 'What Pods are using max memory in the cluster'
 ```
 
-## With default service account
+## Manually install with default service account
 
 If the default service account is already configured with the expected RBAC bindings, you can use this simpler method to run:
 

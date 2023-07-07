@@ -12,13 +12,42 @@ Features:
 
 ## Install
 
+### Run in Kubernetes (recommended)
+
+**Option 1: Web UI with Helm**
+
+```sh
+helm install kube-copilot kube-copilot \
+  --repo https://feisky.xyz/kube-copilot \
+  --set openai.apiModel=gpt-4 \
+  --set openai.apiKey=$OPENAI_API_KEY \
+  --set openai.apiBase=$OPENAI_API_BASE
+
+kubectl port-forward service/kube-copilot 8080:80
+echo "Visit http://127.0.0.1:8080 to use the copilot"
+```
+
+**Option 2: CLI with kubectl**
+
+```sh
+kubectl run -it --rm copilot \
+  --env="OPENAI_API_KEY=$OPENAI_API_KEY" \
+  --restart=Never \
+  --image=ghcr.io/feiskyer/kube-copilot \
+  -- execute --verbose 'What Pods are using max memory in the cluster'
+```
+
+Refer [kubernetes.md](kubernetes.md) for more detailed steps.
+
+### Local Install
+
 Install the copilot with pip command below:
 
 ```sh
 pip install kube-copilot
 ```
 
-## Setup
+**Setup:**
 
 - Ensure [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) is installed on the local machine and the kubeconfig file is configured for Kubernetes cluster access.
 - Install [`trivy`](https://github.com/aquasecurity/trivy) to assess container image security issues (for the `audit` command).
@@ -46,18 +75,6 @@ Commands:
   execute   execute operations based on prompt instructions
   generate  generate Kubernetes manifests
 ```
-
-Running as container:
-
-```sh
-kubectl run -it --rm copilot \
-  --env="OPENAI_API_KEY=$OPENAI_API_KEY" \
-  --restart=Never \
-  --image=ghcr.io/feiskyer/kube-copilot \
-  -- execute --verbose 'What Pods are using max memory in the cluster'
-```
-
-Refer [kubernetes.md](kubernetes.md) for more detailed and fine-tuned steps.
 
 ### Audit Security Issues for Pod
 
