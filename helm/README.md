@@ -55,6 +55,7 @@ helm install kube-copilot kube-copilot \
 | resources | object | `{}` |  |
 | service.port | int | `80` |  |
 | service.type | string | `"ClusterIP"` |  |
-| serviceAccount.create | bool | `true` |  |
+| serviceAccount.create | bool | `true` | Create the service account |
+| serviceAccount.admin | bool | `true` | Create the admin RBAC binding (readonly RBAC would be set if set to false) |
 | serviceAccount.name | string | `"kube-copilot"` |  |
 | tolerations | list | `[]` |  |

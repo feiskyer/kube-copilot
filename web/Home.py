@@ -10,6 +10,7 @@ from kube_copilot.chains import ReActLLM
 from kube_copilot.llm import init_openai
 from kube_copilot.prompts import get_prompt
 from kube_copilot.kubeconfig import setup_kubeconfig
+from kube_copilot.labeler import CustomLLMThoughtLabeler
 
 # setup logging
 logging.basicConfig(stream=sys.stdout, level=logging.WARNING)
@@ -60,7 +61,8 @@ if prompt := st.chat_input():
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.chat_message("user").write(prompt)
 
-    st_cb = StreamlitCallbackHandler(st.container())
+    st_cb = StreamlitCallbackHandler(
+        st.container(), thought_labeler=CustomLLMThoughtLabeler())
     chain = ReActLLM(model=model,
                      verbose=True,
                      enable_python=True,

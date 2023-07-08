@@ -4,6 +4,10 @@
 run:
 	poetry run kube-copilot $(ARGS)
 
+.PHONY: web
+web:
+	streamlit run web/Home.py
+
 .PHONY: build
 build:
 	poetry build
@@ -12,9 +16,16 @@ build:
 install: build
 	pip install --force-reinstall --no-deps dist/$(shell ls -t dist | head -n 1)
 
+.PHONY: versioning
+versioning:
+	yq -i ".image.tag = \"v$(shell poetry version -s)\"" ./helm/kube-copilot/values.yaml
+	yq -i ".version = \"$(shell poetry version -s)\"" ./helm/kube-copilot/Chart.yaml
+	yq -i ".appVersion = \"$(shell poetry version -s)\"" ./helm/kube-copilot/Chart.yaml
+
 .PHONY: publish
 publish: build
 	poetry publish
+	gh release create v$(shell poetry version -s)
 
 .PHONY: release-helm
 release-helm:
@@ -32,8 +43,7 @@ release-helm:
 	git checkout main
 
 .PHONY: release
-release: publish release-helm
-	gh release create v$(shell poetry version -s)
+release: versioning publish release-helm
 
 .PHONY: clean
 clean:

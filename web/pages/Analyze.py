@@ -9,6 +9,7 @@ from langchain.callbacks import StreamlitCallbackHandler
 from kube_copilot.chains import ReActLLM
 from kube_copilot.llm import init_openai
 from kube_copilot.prompts import get_analyze_prompt
+from kube_copilot.labeler import CustomLLMThoughtLabeler
 
 logging.basicConfig(stream=sys.stdout, level=logging.CRITICAL)
 logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
@@ -59,7 +60,7 @@ if st.button("Analyze"):
         st.stop()
 
     prompt = get_analyze_prompt(namespace, resource_type, resource_name)
-    st_cb = StreamlitCallbackHandler(st.container())
+    st_cb = StreamlitCallbackHandler(st.container(), thought_labeler=CustomLLMThoughtLabeler())
     chain = ReActLLM(model=model,
                      verbose=True,
                      enable_python=True,

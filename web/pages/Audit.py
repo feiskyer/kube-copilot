@@ -9,6 +9,7 @@ from langchain.callbacks import StreamlitCallbackHandler
 from kube_copilot.chains import ReActLLM
 from kube_copilot.llm import init_openai
 from kube_copilot.prompts import get_audit_prompt
+from kube_copilot.labeler import CustomLLMThoughtLabeler
 
 logging.basicConfig(stream=sys.stdout, level=logging.CRITICAL)
 logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
@@ -56,7 +57,7 @@ if st.button("Audit"):
         st.stop()
 
     prompt = get_audit_prompt(namespace, pod)
-    st_cb = StreamlitCallbackHandler(st.container())
+    st_cb = StreamlitCallbackHandler(st.container(), thought_labeler=CustomLLMThoughtLabeler())
     chain = ReActLLM(model=model,
                      verbose=True,
                      enable_python=False,

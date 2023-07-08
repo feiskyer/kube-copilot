@@ -4,11 +4,14 @@ import os
 import sys
 
 import streamlit as st
+import yaml
 from langchain.callbacks import StreamlitCallbackHandler
 
 from kube_copilot.chains import ReActLLM
 from kube_copilot.llm import init_openai
 from kube_copilot.prompts import get_generate_prompt
+from kube_copilot.shell import KubeProcess
+from kube_copilot.labeler import CustomLLMThoughtLabeler
 
 logging.basicConfig(stream=sys.stdout, level=logging.CRITICAL)
 logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
@@ -34,7 +37,7 @@ with st.sidebar:
 
 prompt = st.text_input("Prompt", key="prompt",
                        placeholder="<input prompt here>")
-if st.button("Generate"):
+if st.button("Generate", key="generate"):
     if not os.getenv("OPENAI_API_KEY", ""):
         if not openai_api_key:
             st.info("Please add your OpenAI API key to continue.")
@@ -51,17 +54,33 @@ if st.button("Generate"):
         st.info("Please add your prompt to continue.")
         st.stop()
 
-    st_cb = StreamlitCallbackHandler(st.container())
+    st.session_state["response"] = ""
+    st.session_state["manifests"] = ""
+    st_cb = StreamlitCallbackHandler(st.container(), thought_labeler=CustomLLMThoughtLabeler())
     chain = ReActLLM(model=model,
                      verbose=True,
                      enable_python=True,
                      auto_approve=True)
     response = chain.run(get_generate_prompt(prompt), callbacks=[st_cb])
-    st.write(response)
+    st.session_state["response"] = response
 
-#     # Apply the generated manifests in cluster
-#     if click.confirm('Do you approve to apply the generated manifests to cluster?'):
-#         manifests = result.removeprefix(
-#             '```').removeprefix('yaml').removesuffix('```')
-#         print(KubeProcess(command="kubectl").run(
-#             'kubectl apply -f -', input=bytes(manifests, 'utf-8')))
+if st.session_state.get("response", "") != "":
+    response = st.session_state.get("response", "")
+    with st.container():
+        st.markdown(response)
+
+    manifests = response.removeprefix(
+        '```').removeprefix('yaml').removesuffix('```').strip()
+
+    try:
+        yamls = yaml.safe_load_all(manifests)
+        st.session_state["manifests"] = manifests
+    except Exception as e:
+        st.error("The generated manifests are not valid YAML.")
+        st.stop()
+
+if st.session_state.get("manifests", "") != "":
+    if st.button("Apply to the cluster", key="apply_manifests"):
+        st.write("Applying the generated manifests...")
+        st.write(KubeProcess(command="kubectl").run(
+            'kubectl apply -f -', input=bytes(manifests, 'utf-8')))
