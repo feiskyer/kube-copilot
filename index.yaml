@@ -3,9 +3,9 @@ entries:
   kube-copilot:
   - apiVersion: v2
     appVersion: 0.1.19
-    created: "2023-07-08T20:19:46.593772+08:00"
+    created: "2023-07-08T20:31:48.811014+08:00"
     description: Kubernetes Copilot powered by OpenAI
-    digest: 0950d678f575d8f0b89dccb6616736a4d392b7d98596e54d35ee33fbc22f575e
+    digest: d3832d92662527dc6d34c03b393672f60cabc35b183fd733d3a615d1d917f2e0
     name: kube-copilot
     type: application
     urls:
@@ -61,4 +61,4 @@ entries:
     urls:
     - kube-copilot-0.1.14.tgz
     version: 0.1.14
-generated: "2023-07-08T20:19:46.592951+08:00"
+generated: "2023-07-08T20:31:48.810635+08:00"
