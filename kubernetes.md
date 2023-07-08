@@ -5,6 +5,8 @@
 ### Option 1: Install with OpenAI
 
 ```sh
+export OPENAI_API_KEY="<replace-this>"
+
 helm install kube-copilot kube-copilot \
   --repo https://feisky.xyz/kube-copilot \
   --set openai.apiModel=gpt-4 \
@@ -14,6 +16,9 @@ helm install kube-copilot kube-copilot \
 ### Option 2: Install with Azure OpenAI Service
 
 ```sh
+export OPENAI_API_KEY="<replace-this>"
+export OPENAI_API_BASE="<replace-this>"
+
 helm install kube-copilot kube-copilot \
   --repo https://feisky.xyz/kube-copilot \
   --set openai.apiModel=gpt-4 \
@@ -24,6 +29,11 @@ helm install kube-copilot kube-copilot \
 ### Option 3: Azure OpenAI Service + Google Search
 
 ```sh
+export OPENAI_API_KEY="<replace-this>"
+export OPENAI_API_BASE="<replace-this>"
+export GOOGLE_API_KEY="<replace-this>"
+export GOOGLE_CSE_ID="<replace-this>"
+
 helm install kube-copilot kube-copilot \
   --repo https://feisky.xyz/kube-copilot \
   --set openai.apiModel=gpt-4 \

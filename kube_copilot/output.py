@@ -15,7 +15,7 @@ class ChatOutputParser(AgentOutputParser):
     def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
         includes_answer = FINAL_ANSWER_ACTION in text
         try:
-            action = text.split("```")[1]
+            action = text.split("```")[1].strip()
             if action.startswith('python\n'):
                 # Ensure the Python code snippets are handled by the Python action.
                 response = {
@@ -30,7 +30,7 @@ class ChatOutputParser(AgentOutputParser):
                 }
             else:
                 # JSON object is expected by default.
-                response = json.loads(action.strip())
+                response = json.loads(action.strip(), strict=False)
 
             includes_action = "action" in response and "action_input" in response
             if includes_answer and includes_action:

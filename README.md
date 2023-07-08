@@ -18,13 +18,15 @@ Features:
 
 ```sh
 # Option 1: OpenAI
+export OPENAI_API_KEY="<replace-this>"
 helm install kube-copilot kube-copilot \
   --repo https://feisky.xyz/kube-copilot \
   --set openai.apiModel=gpt-4 \
-  --set openai.apiKey=$OPENAI_API_KEY \
-  --set openai.apiBase=$OPENAI_API_BASE
+  --set openai.apiKey=$OPENAI_API_KEY
 
 # Option 2: Azure OpenAI Service
+export OPENAI_API_KEY="<replace-this>"
+export OPENAI_API_BASE="<replace-this>"
 helm install kube-copilot kube-copilot \
   --repo https://feisky.xyz/kube-copilot \
   --set openai.apiModel=gpt-4 \
