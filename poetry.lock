@@ -786,20 +786,20 @@ adal = ["adal (>=1.0.2)"]
 
 [[package]]
 name = "langchain"
-version = "0.0.225"
+version = "0.0.238"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = ">=3.8.1,<4.0"
 files = [
-    {file = "langchain-0.0.225-py3-none-any.whl", hash = "sha256:a72132ceb22f9a9fcad944778fd351d33b63e27a9c03f61d17e4e52fad37fe47"},
-    {file = "langchain-0.0.225.tar.gz", hash = "sha256:986e0838faef3c344d8c00b0079814ca357a39b17f7642e06beb075d3c59c770"},
+    {file = "langchain-0.0.238-py3-none-any.whl", hash = "sha256:25ff3bb2c3f166ffec4dd82d746561b85d535da5e8d47dab4e360fe6ceb298ee"},
+    {file = "langchain-0.0.238.tar.gz", hash = "sha256:17ba2cd5386c0bbc2c7725b5f78fa85a3e040318f09fd64c57a20554461f33c7"},
 ]
 
 [package.dependencies]
 aiohttp = ">=3.8.3,<4.0.0"
 async-timeout = {version = ">=4.0.0,<5.0.0", markers = "python_version < \"3.11\""}
 dataclasses-json = ">=0.5.7,<0.6.0"
-langchainplus-sdk = ">=0.0.20,<0.0.21"
+langsmith = ">=0.0.11,<0.1.0"
 numexpr = ">=2.8.4,<3.0.0"
 numpy = ">=1,<2"
 openapi-schema-pydantic = ">=1.2,<2.0"
@@ -810,34 +810,33 @@ SQLAlchemy = ">=1.4,<3"
 tenacity = ">=8.1.0,<9.0.0"
 
 [package.extras]
-all = ["O365 (>=2.0.26,<3.0.0)", "aleph-alpha-client (>=2.15.0,<3.0.0)", "anthropic (>=0.3,<0.4)", "arxiv (>=1.4,<2.0)", "atlassian-python-api (>=3.36.0,<4.0.0)", "awadb (>=0.3.3,<0.4.0)", "azure-ai-formrecognizer (>=3.2.1,<4.0.0)", "azure-ai-vision (>=0.11.1b1,<0.12.0)", "azure-cognitiveservices-speech (>=1.28.0,<2.0.0)", "azure-cosmos (>=4.4.0b1,<5.0.0)", "azure-identity (>=1.12.0,<2.0.0)", "beautifulsoup4 (>=4,<5)", "clarifai (==9.1.0)", "clickhouse-connect (>=0.5.14,<0.6.0)", "cohere (>=3,<4)", "deeplake (>=3.6.2,<4.0.0)", "docarray[hnswlib] (>=0.32.0,<0.33.0)", "duckduckgo-search (>=3.8.3,<4.0.0)", "elasticsearch (>=8,<9)", "esprima (>=4.0.1,<5.0.0)", "faiss-cpu (>=1,<2)", "google-api-python-client (==2.70.0)", "google-auth (>=2.18.1,<3.0.0)", "google-search-results (>=2,<3)", "gptcache (>=0.1.7)", "html2text (>=2020.1.16,<2021.0.0)", "huggingface_hub (>=0,<1)", "jina (>=3.14,<4.0)", "jinja2 (>=3,<4)", "jq (>=1.4.1,<2.0.0)", "lancedb (>=0.1,<0.2)", "langkit (>=0.0.1.dev3,<0.1.0)", "lark (>=1.1.5,<2.0.0)", "lxml (>=4.9.2,<5.0.0)", "manifest-ml (>=0.0.1,<0.0.2)", "marqo (>=0.9.1,<0.10.0)", "momento (>=1.5.0,<2.0.0)", "nebula3-python (>=3.4.0,<4.0.0)", "neo4j (>=5.8.1,<6.0.0)", "networkx (>=2.6.3,<3.0.0)", "nlpcloud (>=1,<2)", "nltk (>=3,<4)", "nomic (>=1.0.43,<2.0.0)", "octoai-sdk (>=0.1.1,<0.2.0)", "openai (>=0,<1)", "openlm (>=0.0.5,<0.0.6)", "opensearch-py (>=2.0.0,<3.0.0)", "pdfminer-six (>=20221105,<20221106)", "pexpect (>=4.8.0,<5.0.0)", "pgvector (>=0.1.6,<0.2.0)", "pinecone-client (>=2,<3)", "pinecone-text (>=0.4.2,<0.5.0)", "psycopg2-binary (>=2.9.5,<3.0.0)", "pymongo (>=4.3.3,<5.0.0)", "pyowm (>=3.3.0,<4.0.0)", "pypdf (>=3.4.0,<4.0.0)", "pytesseract (>=0.3.10,<0.4.0)", "pyvespa (>=0.33.0,<0.34.0)", "qdrant-client (>=1.1.2,<2.0.0)", "rdflib (>=6.3.2,<7.0.0)", "redis (>=4,<5)", "requests-toolbelt (>=1.0.0,<2.0.0)", "sentence-transformers (>=2,<3)", "singlestoredb (>=0.7.1,<0.8.0)", "spacy (>=3,<4)", "steamship (>=2.16.9,<3.0.0)", "tensorflow-text (>=2.11.0,<3.0.0)", "tigrisdb (>=1.0.0b6,<2.0.0)", "tiktoken (>=0.3.2,<0.4.0)", "torch (>=1,<3)", "transformers (>=4,<5)", "weaviate-client (>=3,<4)", "wikipedia (>=1,<2)", "wolframalpha (==5.0.0)"]
+all = ["O365 (>=2.0.26,<3.0.0)", "aleph-alpha-client (>=2.15.0,<3.0.0)", "amadeus (>=8.1.0)", "anthropic (>=0.3,<0.4)", "arxiv (>=1.4,<2.0)", "atlassian-python-api (>=3.36.0,<4.0.0)", "awadb (>=0.3.3,<0.4.0)", "azure-ai-formrecognizer (>=3.2.1,<4.0.0)", "azure-ai-vision (>=0.11.1b1,<0.12.0)", "azure-cognitiveservices-speech (>=1.28.0,<2.0.0)", "azure-cosmos (>=4.4.0b1,<5.0.0)", "azure-identity (>=1.12.0,<2.0.0)", "beautifulsoup4 (>=4,<5)", "clarifai (>=9.1.0)", "clickhouse-connect (>=0.5.14,<0.6.0)", "cohere (>=3,<4)", "deeplake (>=3.6.8,<4.0.0)", "docarray[hnswlib] (>=0.32.0,<0.33.0)", "duckduckgo-search (>=3.8.3,<4.0.0)", "elasticsearch (>=8,<9)", "esprima (>=4.0.1,<5.0.0)", "faiss-cpu (>=1,<2)", "google-api-python-client (==2.70.0)", "google-auth (>=2.18.1,<3.0.0)", "google-search-results (>=2,<3)", "gptcache (>=0.1.7)", "html2text (>=2020.1.16,<2021.0.0)", "huggingface_hub (>=0,<1)", "jina (>=3.14,<4.0)", "jinja2 (>=3,<4)", "jq (>=1.4.1,<2.0.0)", "lancedb (>=0.1,<0.2)", "langkit (>=0.0.6,<0.1.0)", "lark (>=1.1.5,<2.0.0)", "libdeeplake (>=0.0.60,<0.0.61)", "lxml (>=4.9.2,<5.0.0)", "manifest-ml (>=0.0.1,<0.0.2)", "marqo (>=0.11.0,<0.12.0)", "momento (>=1.5.0,<2.0.0)", "nebula3-python (>=3.4.0,<4.0.0)", "neo4j (>=5.8.1,<6.0.0)", "networkx (>=2.6.3,<3.0.0)", "nlpcloud (>=1,<2)", "nltk (>=3,<4)", "nomic (>=1.0.43,<2.0.0)", "octoai-sdk (>=0.1.1,<0.2.0)", "openai (>=0,<1)", "openlm (>=0.0.5,<0.0.6)", "opensearch-py (>=2.0.0,<3.0.0)", "pdfminer-six (>=20221105,<20221106)", "pexpect (>=4.8.0,<5.0.0)", "pgvector (>=0.1.6,<0.2.0)", "pinecone-client (>=2,<3)", "pinecone-text (>=0.4.2,<0.5.0)", "psycopg2-binary (>=2.9.5,<3.0.0)", "pymongo (>=4.3.3,<5.0.0)", "pyowm (>=3.3.0,<4.0.0)", "pypdf (>=3.4.0,<4.0.0)", "pytesseract (>=0.3.10,<0.4.0)", "pyvespa (>=0.33.0,<0.34.0)", "qdrant-client (>=1.3.1,<2.0.0)", "rdflib (>=6.3.2,<7.0.0)", "redis (>=4,<5)", "requests-toolbelt (>=1.0.0,<2.0.0)", "sentence-transformers (>=2,<3)", "singlestoredb (>=0.7.1,<0.8.0)", "spacy (>=3,<4)", "steamship (>=2.16.9,<3.0.0)", "tensorflow-text (>=2.11.0,<3.0.0)", "tigrisdb (>=1.0.0b6,<2.0.0)", "tiktoken (>=0.3.2,<0.4.0)", "torch (>=1,<3)", "transformers (>=4,<5)", "weaviate-client (>=3,<4)", "wikipedia (>=1,<2)", "wolframalpha (==5.0.0)"]
 azure = ["azure-ai-formrecognizer (>=3.2.1,<4.0.0)", "azure-ai-vision (>=0.11.1b1,<0.12.0)", "azure-cognitiveservices-speech (>=1.28.0,<2.0.0)", "azure-core (>=1.26.4,<2.0.0)", "azure-cosmos (>=4.4.0b1,<5.0.0)", "azure-identity (>=1.12.0,<2.0.0)", "azure-search-documents (==11.4.0a20230509004)", "openai (>=0,<1)"]
-clarifai = ["clarifai (==9.1.0)"]
+clarifai = ["clarifai (>=9.1.0)"]
 cohere = ["cohere (>=3,<4)"]
 docarray = ["docarray[hnswlib] (>=0.32.0,<0.33.0)"]
 embeddings = ["sentence-transformers (>=2,<3)"]
-extended-testing = ["atlassian-python-api (>=3.36.0,<4.0.0)", "beautifulsoup4 (>=4,<5)", "bibtexparser (>=1.4.0,<2.0.0)", "cassio (>=0.0.7,<0.0.8)", "chardet (>=5.1.0,<6.0.0)", "esprima (>=4.0.1,<5.0.0)", "gql (>=3.4.1,<4.0.0)", "html2text (>=2020.1.16,<2021.0.0)", "jq (>=1.4.1,<2.0.0)", "lxml (>=4.9.2,<5.0.0)", "openai (>=0,<1)", "pandas (>=2.0.1,<3.0.0)", "pdfminer-six (>=20221105,<20221106)", "pgvector (>=0.1.6,<0.2.0)", "psychicapi (>=0.8.0,<0.9.0)", "py-trello (>=0.19.0,<0.20.0)", "pymupdf (>=1.22.3,<2.0.0)", "pypdf (>=3.4.0,<4.0.0)", "pypdfium2 (>=4.10.0,<5.0.0)", "pyspark (>=3.4.0,<4.0.0)", "requests-toolbelt (>=1.0.0,<2.0.0)", "scikit-learn (>=1.2.2,<2.0.0)", "streamlit (>=1.18.0,<2.0.0)", "telethon (>=1.28.5,<2.0.0)", "tqdm (>=4.48.0)", "zep-python (>=0.32)"]
+extended-testing = ["atlassian-python-api (>=3.36.0,<4.0.0)", "beautifulsoup4 (>=4,<5)", "bibtexparser (>=1.4.0,<2.0.0)", "cassio (>=0.0.7,<0.0.8)", "chardet (>=5.1.0,<6.0.0)", "esprima (>=4.0.1,<5.0.0)", "geopandas (>=0.13.1,<0.14.0)", "gql (>=3.4.1,<4.0.0)", "html2text (>=2020.1.16,<2021.0.0)", "jq (>=1.4.1,<2.0.0)", "lxml (>=4.9.2,<5.0.0)", "mwparserfromhell (>=0.6.4,<0.7.0)", "mwxml (>=0.3.3,<0.4.0)", "openai (>=0,<1)", "pandas (>=2.0.1,<3.0.0)", "pdfminer-six (>=20221105,<20221106)", "pgvector (>=0.1.6,<0.2.0)", "psychicapi (>=0.8.0,<0.9.0)", "py-trello (>=0.19.0,<0.20.0)", "pymupdf (>=1.22.3,<2.0.0)", "pypdf (>=3.4.0,<4.0.0)", "pypdfium2 (>=4.10.0,<5.0.0)", "pyspark (>=3.4.0,<4.0.0)", "rank-bm25 (>=0.2.2,<0.3.0)", "rapidfuzz (>=3.1.1,<4.0.0)", "requests-toolbelt (>=1.0.0,<2.0.0)", "scikit-learn (>=1.2.2,<2.0.0)", "streamlit (>=1.18.0,<2.0.0)", "sympy (>=1.12,<2.0)", "telethon (>=1.28.5,<2.0.0)", "tqdm (>=4.48.0)", "zep-python (>=0.32)"]
 javascript = ["esprima (>=4.0.1,<5.0.0)"]
-llms = ["anthropic (>=0.3,<0.4)", "clarifai (==9.1.0)", "cohere (>=3,<4)", "huggingface_hub (>=0,<1)", "manifest-ml (>=0.0.1,<0.0.2)", "nlpcloud (>=1,<2)", "openai (>=0,<1)", "openllm (>=0.1.19)", "openlm (>=0.0.5,<0.0.6)", "torch (>=1,<3)", "transformers (>=4,<5)"]
+llms = ["anthropic (>=0.3,<0.4)", "clarifai (>=9.1.0)", "cohere (>=3,<4)", "huggingface_hub (>=0,<1)", "manifest-ml (>=0.0.1,<0.0.2)", "nlpcloud (>=1,<2)", "openai (>=0,<1)", "openllm (>=0.1.19)", "openlm (>=0.0.5,<0.0.6)", "torch (>=1,<3)", "transformers (>=4,<5)"]
 openai = ["openai (>=0,<1)", "tiktoken (>=0.3.2,<0.4.0)"]
-qdrant = ["qdrant-client (>=1.1.2,<2.0.0)"]
+qdrant = ["qdrant-client (>=1.3.1,<2.0.0)"]
 text-helpers = ["chardet (>=5.1.0,<6.0.0)"]
 
 [[package]]
-name = "langchainplus-sdk"
-version = "0.0.20"
+name = "langsmith"
+version = "0.0.12"
 description = "Client library to connect to the LangSmith LLM Tracing and Evaluation Platform."
 optional = false
 python-versions = ">=3.8.1,<4.0"
 files = [
-    {file = "langchainplus_sdk-0.0.20-py3-none-any.whl", hash = "sha256:07a869d476755803aa04c4986ce78d00c2fe4ff584c0eaa57d7570c9664188db"},
-    {file = "langchainplus_sdk-0.0.20.tar.gz", hash = "sha256:3d300e2e3290f68cc9d842c059f9458deba60e776c9e790309688cad1bfbb219"},
+    {file = "langsmith-0.0.12-py3-none-any.whl", hash = "sha256:d7a4360d1984b57689c6470ffcef79dcb217dd7129bdfd3bcfcb22dc058787f6"},
+    {file = "langsmith-0.0.12.tar.gz", hash = "sha256:5abf30ac4ebb6b68955bea617669585e80a6fe9def90664503d5fbd6d095e91e"},
 ]
 
 [package.dependencies]
 pydantic = ">=1,<2"
 requests = ">=2,<3"
-tenacity = ">=8.1.0,<9.0.0"
 
 [[package]]
 name = "lark"
@@ -1845,6 +1844,17 @@ files = [
     {file = "rpds_py-0.8.8-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:78c5577f99d2edc9eed9ec39fae27b73d04d1b2462aff6f6b11207e0364fc40d"},
     {file = "rpds_py-0.8.8-cp311-none-win32.whl", hash = "sha256:42eb3030665ee7a5c03fd4db6b8db1983aa91bcdffbed0f4687751deb2a94a7c"},
     {file = "rpds_py-0.8.8-cp311-none-win_amd64.whl", hash = "sha256:7110854662ccf8db84b90e4624301ef5311cafff7e5f2a63f2d7cc0fc1a75b60"},
+    {file = "rpds_py-0.8.8-cp312-cp312-macosx_10_7_x86_64.whl", hash = "sha256:d00b16de3c42bb3d26341b443e48d67d444bb1a4ce6b44dd5600def2da759599"},
+    {file = "rpds_py-0.8.8-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:4d7e540e4f85c04706ea798f47a86483f3d85c624704413bc701eb75684d35a5"},
+    {file = "rpds_py-0.8.8-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:54a54c3c220e7c5038207912aab23443f829762503a4fcbc5c7bbffef7523b13"},
+    {file = "rpds_py-0.8.8-cp312-cp312-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:22d5bef6f9942e46582610a60b8420f8e9af7e0c69e35c317cb508c30117f933"},
+    {file = "rpds_py-0.8.8-cp312-cp312-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:c4fccd5e138908ae6f2db5fbfc6769e65372993b0c4c047586de15b6c31a76e8"},
+    {file = "rpds_py-0.8.8-cp312-cp312-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:502f0bee154fa1c13514dfddb402ef29b86aca11873a3316de4534cf0e13a1e8"},
+    {file = "rpds_py-0.8.8-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d9cfd2c2dbb0446ec1ba132e62e1f4880163e43e131dd43f58f58fd46430649b"},
+    {file = "rpds_py-0.8.8-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:f12e679f29a6c2c0607b7037e7fce4f6430a0d304770768cf6d8036386918c29"},
+    {file = "rpds_py-0.8.8-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:8f9d619c66dc7c018a22a1795a14ab4dad3c76246c9059b681955254a0f58f7c"},
+    {file = "rpds_py-0.8.8-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:87f9e70c04cc0402f8b14fec8ac91d1b825ac89a9aa015556a0af12a06b5f085"},
+    {file = "rpds_py-0.8.8-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:d72757c0cb6423fe73ecaa2db3adf0077da513b7fe8cb19e102de6df4ccdad0c"},
     {file = "rpds_py-0.8.8-cp38-cp38-macosx_10_7_x86_64.whl", hash = "sha256:d7e46f52272ceecc42c05ad869b068b2dbfb6eb5643bcccecd2327d3cded5a2e"},
     {file = "rpds_py-0.8.8-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:7628b2080538faa4a1243b0002678cae7111af68ae7b5aa6cd8526762cace868"},
     {file = "rpds_py-0.8.8-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:657348b35a4c2e7c2340bf0bc37597900037bd87e9db7e6282711aaa77256e16"},
@@ -1871,6 +1881,17 @@ files = [
     {file = "rpds_py-0.8.8-cp39-cp39-musllinux_1_2_x86_64.whl", hash = "sha256:1891903e567d728175c0475a1f0ffc1d1580013b0b265b9e2f1b8c93d58b2d05"},
     {file = "rpds_py-0.8.8-cp39-none-win32.whl", hash = "sha256:ee42ce4ef46ea334ce8ab63d5a57c7fd78238c9c7293b3caa6dfedf11bd28773"},
     {file = "rpds_py-0.8.8-cp39-none-win_amd64.whl", hash = "sha256:0e8da63b9baa154ec9ddd6dd397893830d17e5812ceb50edbae8122d8ecb9f2e"},
+    {file = "rpds_py-0.8.8-pp310-pypy310_pp73-macosx_10_7_x86_64.whl", hash = "sha256:ecc79cd61c4c16f92521c7d34e0f534bc486fc5ed5d1fdf8d4e6e0c578dc7e07"},
+    {file = "rpds_py-0.8.8-pp310-pypy310_pp73-macosx_11_0_arm64.whl", hash = "sha256:d43e4253469a6149f4dae91189ccbf832dcd870109b940fa6acb02769e57802b"},
+    {file = "rpds_py-0.8.8-pp310-pypy310_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9985927f001d98d38ad90e0829d3e3c162ce42060bafb833782a934bf1d1d39b"},
+    {file = "rpds_py-0.8.8-pp310-pypy310_pp73-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:7af604c6581da01fd5f89a917c903a324779fdfa7b3ae66204865d34b5f2c502"},
+    {file = "rpds_py-0.8.8-pp310-pypy310_pp73-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:53ed81e3a9a0eb3dfd404ee097d4f50ec6985301ea6e03b4d57cd7ef239179f9"},
+    {file = "rpds_py-0.8.8-pp310-pypy310_pp73-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:7e6b93a8a17e84a53fa6636037955ba8e795f6645dab5ccbeb356c8dbc9cb371"},
+    {file = "rpds_py-0.8.8-pp310-pypy310_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:592b9de8d82e919ffbf069e586808f56118a7f522bb0d018c54fa3526e5f2bed"},
+    {file = "rpds_py-0.8.8-pp310-pypy310_pp73-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:af0920c26fe3421f9e113975c185f7c42a3f0a8ead72cee5b4e6648af5d8cecc"},
+    {file = "rpds_py-0.8.8-pp310-pypy310_pp73-musllinux_1_2_aarch64.whl", hash = "sha256:28ce85916d7377b9734b280872fb456aa048712901edff9d60836c7b2e177265"},
+    {file = "rpds_py-0.8.8-pp310-pypy310_pp73-musllinux_1_2_i686.whl", hash = "sha256:cbbb26ac4dade6fdec22cb1155ca38d270b308f57cfd48a13a7a8ecc79369e82"},
+    {file = "rpds_py-0.8.8-pp310-pypy310_pp73-musllinux_1_2_x86_64.whl", hash = "sha256:8469755965ff2aa1da08e6e0afcde08950ebba84a4836cdc1672d097c62ffdbd"},
     {file = "rpds_py-0.8.8-pp38-pypy38_pp73-macosx_10_7_x86_64.whl", hash = "sha256:f1c84912d77b01651488bbe392df593b4c5852e213477e268ebbb7c799059d78"},
     {file = "rpds_py-0.8.8-pp38-pypy38_pp73-macosx_11_0_arm64.whl", hash = "sha256:180963bb3e1fcc6ed6313ece5e065f0df4021a7eb7016084d3cbc90cd2a8af3e"},
     {file = "rpds_py-0.8.8-pp38-pypy38_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8e1251d6690f356a305192089017da83999cded1d7e2405660d14c1dff976af7"},
