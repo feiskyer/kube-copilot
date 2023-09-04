@@ -7,8 +7,8 @@ from langchain.tools.python.tool import PythonREPLTool
 from langchain.callbacks import HumanApprovalCallbackHandler
 from langchain.agents.structured_chat.base import StructuredChatAgent
 from langchain.utilities import GoogleSearchAPIWrapper
-from langchain.experimental.plan_and_execute import PlanAndExecute, load_chat_planner
-from langchain.experimental.plan_and_execute.executors.base import ChainExecutor
+from langchain_experimental.plan_and_execute import PlanAndExecute, load_chat_planner
+from langchain_experimental.plan_and_execute.executors.base import ChainExecutor
 from langchain.agents.structured_chat.base import StructuredChatAgent
 from langchain.callbacks import StdOutCallbackHandler
 from langchain.memory import ConversationBufferMemory
