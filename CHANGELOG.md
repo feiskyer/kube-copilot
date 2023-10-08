@@ -1,3 +1,13 @@
+# CHANGELOG
+
+## v0.1.22
+
+- Bump dependencies to fix security issues
+
+## v0.1.21
+
+- Bump dependencies to fix security issues
+
 ## v0.1.14
 
 - feat: add generate command to create Kubernetes manifests based on the provided prompt instructions.
