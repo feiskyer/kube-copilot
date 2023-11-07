@@ -14,7 +14,7 @@ def init_openai():
     if os.getenv("OPENAI_API_TYPE") == "azure" or (os.getenv("OPENAI_API_BASE") is not None and "azure" in os.getenv("OPENAI_API_BASE")):
         openai.api_type = "azure"
         openai.api_base = os.getenv("OPENAI_API_BASE")
-        openai.api_version = "2023-05-15"
+        openai.api_version = "2023-07-01-preview"
         openai.api_key = os.getenv("OPENAI_API_KEY")
     else:
         openai.api_key = os.getenv("OPENAI_API_KEY")

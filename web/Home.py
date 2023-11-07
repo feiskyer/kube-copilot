@@ -52,9 +52,9 @@ if prompt := st.chat_input():
     st_cb = StreamlitCallbackHandler(
         st.container(), thought_labeler=CustomLLMThoughtLabeler())
     chain = ReActLLM(model=model,
-                     verbose=True,
-                     enable_python=True,
-                     auto_approve=True)
+                           verbose=True,
+                           enable_python=True,
+                           auto_approve=True)
 
     # Generate response and update messages
     with st.chat_message("assistant"):

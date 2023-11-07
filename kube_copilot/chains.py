@@ -3,17 +3,21 @@ import os
 from langchain.chat_models import ChatOpenAI
 from langchain.agents import AgentType, Tool, initialize_agent
 from langchain.agents.agent import AgentExecutor
-from langchain.tools.python.tool import PythonREPLTool
 from langchain.callbacks import HumanApprovalCallbackHandler
 from langchain.agents.structured_chat.base import StructuredChatAgent
 from langchain.utilities import GoogleSearchAPIWrapper
 from langchain_experimental.plan_and_execute import PlanAndExecute, load_chat_planner
 from langchain_experimental.plan_and_execute.executors.base import ChainExecutor
+from langchain_experimental.tools import PythonREPLTool
 from langchain.agents.structured_chat.base import StructuredChatAgent
 from langchain.callbacks import StdOutCallbackHandler
 from langchain.memory import ConversationBufferMemory
+from langchain.agents import OpenAIMultiFunctionsAgent
+from langchain.schema.messages import SystemMessage
+from langchain.prompts import MessagesPlaceholder
+from langchain.agents import AgentExecutor
 from kube_copilot.shell import KubeProcess
-from kube_copilot.prompts import get_planner_prompt
+from kube_copilot.prompts import get_planner_prompt, _base_prompt
 from kube_copilot.output import ChatOutputParser
 
 
@@ -96,6 +100,43 @@ class ReActLLM:
                                      "output_parser": ChatOutputParser(),
                                  },
                                  )
+        return agent
+
+
+class FunctioningLLM:
+    '''Wrapper for LLM chain with Function calling.'''
+
+    def __init__(self, verbose=True, model="gpt-4", additional_tools=None, enable_python=False, auto_approve=False):
+        '''Initialize the LLM chain.'''
+        self.chain = self.get_chain(
+            verbose, model, additional_tools=additional_tools,
+            enable_python=enable_python, auto_approve=auto_approve)
+
+    def run(self, instructions, callbacks=None):
+        '''Run the LLM chain.'''
+        return self.chain.run(instructions, callbacks=callbacks)
+
+    def get_chain(self, verbose=True, model="gpt-4", additional_tools=None, enable_python=False, auto_approve=False):
+        '''Initialize the LLM chain with useful tools.'''
+        memory = ConversationBufferMemory(
+            memory_key="chat_history", return_messages=True)
+        llm, tools = get_llm_tools(
+            model, additional_tools, enable_python, auto_approve=auto_approve)
+        prompt = OpenAIMultiFunctionsAgent.create_prompt(
+            system_message=SystemMessage(content=_base_prompt),
+            extra_prompt_messages=[
+                MessagesPlaceholder(variable_name="chat_history"),
+                MessagesPlaceholder(variable_name="agent_scratchpad"),
+            ])
+        function_agent = OpenAIMultiFunctionsAgent(
+            llm=llm, tools=tools,
+            prompt=prompt,
+            verbose=verbose,
+            max_iterations=15,
+            handle_parsing_errors=handle_parsing_error,
+        )
+        agent = AgentExecutor(
+            agent=function_agent, tools=tools, verbose=verbose, memory=memory)
         return agent
 
 
