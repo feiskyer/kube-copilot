@@ -919,13 +919,13 @@ requests = ">=2,<3"
 
 [[package]]
 name = "lark"
-version = "1.1.7"
+version = "1.1.8"
 description = "a modern parsing library"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "lark-1.1.7-py3-none-any.whl", hash = "sha256:9e5dc5bbf93fa1840083707285262514a0ef8a6613874af7ea1cec60468d6e92"},
-    {file = "lark-1.1.7.tar.gz", hash = "sha256:be7437bf1f37ab08b355f29ff2571d77d777113d0a8c4352b0c513dced6c5a1e"},
+    {file = "lark-1.1.8-py3-none-any.whl", hash = "sha256:7d2c221a66a8165f3f81aacb958d26033d40d972fdb70213ab0a2e0627e29c86"},
+    {file = "lark-1.1.8.tar.gz", hash = "sha256:7ef424db57f59c1ffd6f0d4c2b705119927f566b68c0fe1942dddcc0e44391a5"},
 ]
 
 [package.extras]
@@ -2617,4 +2617,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "64d370848fdc8cc51da68cbf0bd6d3dd8e19c178f6553b2f3608e8f139fdb361"
+content-hash = "f4559feb9209a1e6974c7c02bcb4cc6aff1f28616c4a0b1ed650f42b4856ce95"
