@@ -887,20 +887,20 @@ text-helpers = ["chardet (>=5.1.0,<6.0.0)"]
 
 [[package]]
 name = "langchain-experimental"
-version = "0.0.13"
+version = "0.0.37"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = ">=3.8.1,<4.0"
 files = [
-    {file = "langchain_experimental-0.0.13-py3-none-any.whl", hash = "sha256:d5916c5d7da70176dfccafab79bc55f40030f58ec72f7581d6c06addc0d76a25"},
-    {file = "langchain_experimental-0.0.13.tar.gz", hash = "sha256:22ff8dd78d0b3eb57e1d5ac6c3e335b6c165da704dc36336eb36c137be9cc14b"},
+    {file = "langchain_experimental-0.0.37-py3-none-any.whl", hash = "sha256:5cf5b26f142766596a1e313cabbfceb9cbd5cd2cf46f4a21e92c66ed11466dac"},
+    {file = "langchain_experimental-0.0.37.tar.gz", hash = "sha256:c30fae03702ab071b7040ff6a0fdedd4b4d1028c6c2d8481db0921d7a216e078"},
 ]
 
 [package.dependencies]
-langchain = ">=0.0.239"
+langchain = ">=0.0.308"
 
 [package.extras]
-extended-testing = ["faker (>=19.3.1,<20.0.0)", "presidio-analyzer (>=2.2.33,<3.0.0)", "presidio-anonymizer (>=2.2.33,<3.0.0)"]
+extended-testing = ["faker (>=19.3.1,<20.0.0)", "presidio-analyzer (>=2.2.33,<3.0.0)", "presidio-anonymizer (>=2.2.33,<3.0.0)", "sentence-transformers (>=2,<3)", "vowpal-wabbit-next (==0.6.0)"]
 
 [[package]]
 name = "langsmith"
@@ -2617,4 +2617,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "21f9a04562790a5b430f2202777f1f00acc623fcaa8e6ae7110671b479974bcd"
+content-hash = "64d370848fdc8cc51da68cbf0bd6d3dd8e19c178f6553b2f3608e8f139fdb361"
