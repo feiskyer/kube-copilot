@@ -3,7 +3,6 @@
 import logging
 import sys
 import click
-from kube_copilot.llm import init_openai
 from kube_copilot.chains import ReActLLM
 from kube_copilot.shell import KubeProcess
 from kube_copilot.prompts import (
@@ -106,7 +105,6 @@ def generate(instructions, verbose, model):
 
 def main():
     '''Main function'''
-    init_openai()
     cli()
 
 

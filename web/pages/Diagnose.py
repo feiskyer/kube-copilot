@@ -7,7 +7,6 @@ import streamlit as st
 from langchain.callbacks import StreamlitCallbackHandler
 
 from kube_copilot.chains import ReActLLM
-from kube_copilot.llm import init_openai
 from kube_copilot.prompts import get_diagnose_prompt
 from kube_copilot.labeler import CustomLLMThoughtLabeler
 
@@ -50,7 +49,6 @@ if st.button("Diagnose"):
         os.environ["GOOGLE_API_KEY"] = google_api_key
         os.environ["GOOGLE_CSE_ID"] = google_cse_id
 
-    init_openai()
 
     if not namespace or not pod:
         st.info("Please add your namespace and pod to continue.")

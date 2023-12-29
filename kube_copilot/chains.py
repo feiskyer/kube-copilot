@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models import ChatOpenAI, AzureChatOpenAI
 from langchain.agents import AgentType, Tool, initialize_agent
 from langchain.agents.agent import AgentExecutor
 from langchain.callbacks import HumanApprovalCallbackHandler
@@ -8,7 +8,6 @@ from langchain.agents.structured_chat.base import StructuredChatAgent
 from langchain.utilities import GoogleSearchAPIWrapper
 from langchain_experimental.plan_and_execute import PlanAndExecute, load_chat_planner
 from langchain_experimental.plan_and_execute.executors.base import ChainExecutor
-from langchain_experimental.tools import PythonREPLTool
 from langchain.agents.structured_chat.base import StructuredChatAgent
 from langchain.callbacks import StdOutCallbackHandler
 from langchain.memory import ConversationBufferMemory
@@ -16,6 +15,7 @@ from langchain.agents import OpenAIMultiFunctionsAgent
 from langchain.schema.messages import SystemMessage
 from langchain.prompts import MessagesPlaceholder
 from langchain.agents import AgentExecutor
+from kube_copilot.python import PythonTool
 from kube_copilot.shell import KubeProcess
 from kube_copilot.prompts import get_planner_prompt, _base_prompt
 from kube_copilot.output import ChatOutputParser
@@ -143,15 +143,21 @@ class FunctioningLLM:
 def get_llm_tools(model, additional_tools, enable_python=False, auto_approve=False):
     '''Initialize the LLM chain with useful tools.'''
     if os.getenv("OPENAI_API_TYPE") == "azure" or (os.getenv("OPENAI_API_BASE") is not None and "azure" in os.getenv("OPENAI_API_BASE")):
-        engine = model.replace(".", "")
-        llm = ChatOpenAI(model_name=model,
-                         temperature=0,
-                         request_timeout=120,
-                         model_kwargs={"engine": engine})
+        deployment_name = model.replace(".", "")
+        llm = AzureChatOpenAI(temperature=0,
+                              request_timeout=120,
+                              openai_api_key=os.getenv("OPENAI_API_KEY"),
+                              openai_api_base=os.getenv("OPENAI_API_BASE"),
+                              openai_api_version="2023-05-15",
+                              deployment_name=deployment_name)
     else:
         llm = ChatOpenAI(model_name=model,
                          temperature=0,
-                         request_timeout=120)
+                         request_timeout=120,
+                         openai_api_key=os.getenv("OPENAI_API_KEY"),
+                         openai_api_base=os.getenv(
+                             "OPENAI_API_BASE", "https://api.openai.com/v1"),
+                         openai_organization=os.getenv("OPENAI_ORGANIZATION", None))
 
     tools = [
         Tool(
@@ -167,17 +173,17 @@ def get_llm_tools(model, additional_tools, enable_python=False, auto_approve=Fal
     ]
 
     if enable_python:
-        python_tool = PythonREPLTool(
+        python_tool = PythonTool(
             callbacks=[HumanApprovalCallbackHandler(
                 approve=python_approval)]
         )
         if auto_approve:
-            python_tool = PythonREPLTool()
+            python_tool = PythonTool()
         tools = [
             Tool(
                 name="python",
                 func=python_tool.run,
-                description="Useful for executing Python code with Kubernetes Python SDK client. Results should be print out by calling `print(...)`. Input: Python code. Output: the result from the Python code's print()."
+                description="Useful for executing Python code with Kubernetes Python SDK client. Results should be print out by calling `print(...)`. Input: Python codes (kubectl commands must be converted to kubernetes python library first). Output: the result from the Python code's print()."
             ),
             Tool(
                 name="trivy",

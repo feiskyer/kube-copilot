@@ -6,7 +6,6 @@ import streamlit as st
 from langchain.callbacks import StreamlitCallbackHandler
 
 from kube_copilot.chains import ReActLLM
-from kube_copilot.llm import init_openai
 from kube_copilot.prompts import get_prompt
 from kube_copilot.kubeconfig import setup_kubeconfig
 from kube_copilot.labeler import CustomLLMThoughtLabeler
@@ -31,8 +30,6 @@ with st.sidebar:
         st.warning("Please add your OpenAI API key to continue.")
         st.stop()
 
-# Initialize OpenAI API
-init_openai()
 
 # Initialize or retrieve session messages
 if "messages" not in st.session_state:
