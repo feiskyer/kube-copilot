@@ -12,162 +12,52 @@ Features:
 
 ## Install
 
-### Run in Kubernetes
-
-**Option 1: Web UI with Helm (recommended)**
+Install the copilot with the commands below:
 
 ```sh
-# Option 1: OpenAI
-export OPENAI_API_KEY="<replace-this>"
-helm install kube-copilot kube-copilot \
-  --repo https://feisky.xyz/kube-copilot \
-  --set openai.apiModel=gpt-4 \
-  --set openai.apiKey=$OPENAI_API_KEY
-
-# Option 2: Azure OpenAI Service
-export OPENAI_API_KEY="<replace-this>"
-export OPENAI_API_BASE="<replace-this>"
-helm install kube-copilot kube-copilot \
-  --repo https://feisky.xyz/kube-copilot \
-  --set openai.apiModel=gpt-4 \
-  --set openai.apiKey=$OPENAI_API_KEY \
-  --set openai.apiBase=$OPENAI_API_BASE
-
-# Forwarding requests to the service
-kubectl port-forward service/kube-copilot 8080:80
-echo "Visit http://127.0.0.1:8080 to use the copilot"
+go install github.com/feiskyer/kube-copilot/cmd/kube-copilot
 ```
 
-**Option 2: CLI with kubectl**
+## How to use
 
-```sh
-kubectl run -it --rm copilot \
-  --env="OPENAI_API_KEY=$OPENAI_API_KEY" \
-  --restart=Never \
-  --image=ghcr.io/feiskyer/kube-copilot \
-  -- execute --verbose 'What Pods are using max memory in the cluster'
-```
-
-Refer [kubernetes.md](kubernetes.md) for more detailed steps.
-
-### Local Install
-
-Install the copilot with pip command below:
-
-```sh
-pip install kube-copilot
-```
-
-**Setup:**
+Setup the following environment variables:
 
 - Ensure [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) is installed on the local machine and the kubeconfig file is configured for Kubernetes cluster access.
-- Install [`trivy`](https://github.com/aquasecurity/trivy) to assess container image security issues (for the `audit` command).
+- Install [`trivy`](https://github.com/aquasecurity/trivy) to assess container image security issues (only required for the `audit` command).
 - Set the OpenAI [API key](https://platform.openai.com/account/api-keys) as the `OPENAI_API_KEY` environment variable to enable ChatGPT functionality.
   - For [Azure OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart?tabs=command-line&pivots=rest-api#retrieve-key-and-endpoint), also set `OPENAI_API_TYPE=azure` and `OPENAI_API_BASE=https://<replace-this>.openai.azure.com/`.
 - Google search is disabled by default. To enable it, set `GOOGLE_API_KEY` and `GOOGLE_CSE_ID` (obtain from [here](https://cloud.google.com/docs/authentication/api-keys?visit_id=638154888929258210-4085587461) and [here](http://www.google.com/cse/)).
 
-## How to use web UI
-
-![image-20230707191237629](assets/preview.jpg)
-
-## How to use CLI
-
-Running directly in the terminal:
+Then run the following commands directly in the terminal:
 
 ```sh
-Usage: kube-copilot [OPTIONS] COMMAND [ARGS]...
+Kubernetes Copilot powered by OpenAI
 
-  Kubernetes Copilot powered by OpenAI
+Usage:
+  kube-copilot [command]
 
-Options:
-  --version  Show the version and exit.
-  --help     Show this message and exit.
+Available Commands:
+  analyze     Analyze issues for a given resource
+  audit       Audit security issues for a Pod
+  completion  Generate the autocompletion script for the specified shell
+  diagnose    Diagnose problems for a Pod
+  execute     Execute operations based on prompt instructions
+  generate    Generate Kubernetes manifests
+  help        Help about any command
 
-Commands:
-  analyze   analyze issues for a given resource
-  audit     audit security issues for a Pod
-  diagnose  diagnose problems for a Pod
-  execute   execute operations based on prompt instructions
-  generate  generate Kubernetes manifests
+Flags:
+  -c, --count-tokens     Print tokens count
+  -h, --help             help for kube-copilot
+  -t, --max-tokens int   Max tokens for the GPT model (default 1024)
+  -m, --model string     OpenAI model to use (default "gpt-4")
+  -v, --verbose          Enable verbose output (default true)
+
+Use "kube-copilot [command] --help" for more information about a command.
 ```
 
-### Audit Security Issues for Pod
+## Python Version
 
-`kube-copilot audit POD [NAMESPACE]` will audit security issues for a Pod:
-
-```sh
-Usage: kube-copilot audit [OPTIONS] POD [NAMESPACE]
-
-  audit security issues for a Pod
-
-Options:
-  --verbose      Enable verbose information of copilot execution steps
-  --model MODEL  OpenAI model to use for copilot execution, default is gpt-4
-  --help         Show this message and exit.
-```
-
-### Diagnose Problems for Pod
-
-`kube-copilot diagnose POD [NAMESPACE]` will diagnose problems for a Pod:
-
-```sh
-Usage: kube-copilot diagnose [OPTIONS] POD [NAMESPACE]
-
-  diagnose problems for a Pod
-
-Options:
-  --verbose      Enable verbose information of copilot execution steps
-  --model MODEL  OpenAI model to use for copilot execution, default is gpt-4
-  --help         Show this message and exit.
-```
-
-### Analyze Potential Issues for k8s Object
-
-`kube-copilot analyze RESOURCE NAME [NAMESPACE]` will analyze potential issues for the given resource object:
-
-```sh
-Usage: kube-copilot analyze [OPTIONS] RESOURCE NAME [NAMESPACE]
-
-  analyze issues for a given resource
-
-Options:
-  --verbose     Enable verbose information of copilot execution steps
-  --model TEXT  OpenAI model to use for copilot execution, default is gpt-4
-  --help        Show this message and exit.
-```
-
-### Execute Operations Based on Prompt Instructions
-
-`kube-copilot execute INSTRUCTIONS` will execute operations based on prompt instructions.
-It could also be used to ask any questions.
-
-```sh
-Usage: kube-copilot execute [OPTIONS] INSTRUCTIONS
-
-  execute operations based on prompt instructions
-
-Options:
-  --verbose      Enable verbose information of copilot execution steps
-  --model MODEL  OpenAI model to use for copilot execution, default is gpt-4
-  --help         Show this message and exit.
-```
-
-### Generate Kubernetes Manifests
-
-Use the `kube-copilot generate` command to create Kubernetes manifests based on
-the provided prompt instructions. After generating the manifests, you will be
-prompted to confirm whether you want to apply them.
-
-```sh
-Usage: kube-copilot generate [OPTIONS] INSTRUCTIONS
-
-  generate Kubernetes manifests
-
-Options:
-  --verbose     Enable verbose information of copilot execution steps
-  --model TEXT  OpenAI model to use for copilot execution, default is gpt-4
-  --help        Show this message and exit.
-```
+Please note that the original project (version number < v0.5.0) is written in Python 3 and the codes are in [main](https://github.com/feiskyer/kube-copilot/tree/main) branch.
 
 ## Contribution
 

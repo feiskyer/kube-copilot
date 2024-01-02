@@ -12,6 +12,11 @@ index.yaml
 # C extensions
 *.so
 
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
 # Distribution / packaging
 .Python
 build/
@@ -32,6 +37,27 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# Folders
+_obj
+_test
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+_testmain.go
+
+*.exe
+*.test
+*.prof
+_out
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -108,6 +134,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+.vscode
 .env
 .venv
 env/

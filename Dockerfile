@@ -1,29 +1,23 @@
-# Builder image
-FROM python:3.11-bullseye AS builder
-
-RUN curl -sSL https://install.python-poetry.org | python3 -
-
-WORKDIR /app
-COPY . /app
-
-RUN /root/.local/bin/poetry install && /root/.local/bin/poetry build && \
-    pip install dist/*.whl
-
+# build stage
+FROM golang:alpine AS builder
+ADD . /go/src/github.com/feiskyer/kube-copilot
+RUN cd /go/src/github.com/feiskyer/kube-copilot && \
+    apk update && apk add --no-cache gcc musl-dev openssl && \
+    CGO_ENABLED=0 go build -o _out/kube-copilot ./cmd/kube-copilot
 
 # Final image
-FROM python:3.11-bullseye
+FROM alpine
+# EXPOSE 80
+WORKDIR /
 
-RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
-    chmod +x kubectl && mv kubectl /usr/local/bin/kubectl && \
-    wget https://github.com/aquasecurity/trivy/releases/download/v0.18.3/trivy_0.18.3_Linux-64bit.deb && \
-    dpkg -i trivy_0.18.3_Linux-64bit.deb && rm -f trivy_0.18.3_Linux-64bit.deb && \
-    useradd --create-home --shell /bin/bash copilot
+RUN apk add --update curl wget python3 py3-pip curl && \
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+    chmod +x kubectl && mv kubectl /usr/local/bin && \
+    curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.48.1 && \
+    rm -rf /var/cache/apk/* && \
+    mkdir -p /etc/kube-copilot
 
-COPY --from=builder /app/dist/*.whl /tmp
-RUN pip install /tmp/*.whl && rm -f /tmp/*.whl
-COPY web /app
+COPY --from=builder /go/src/github.com/feiskyer/kube-copilot/_out/kube-copilot /usr/local/bin/
 
 USER copilot
-COPY web/config.toml /home/copilot/.streamlit/config.toml
-
 ENTRYPOINT [ "/usr/local/bin/kube-copilot" ]
