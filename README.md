@@ -2,6 +2,8 @@
 
 Kubernetes Copilot powered by OpenAI.
 
+> Please note that the Python version of this project (version number < v0.5.0) has been deprecated. Please switch to Go version in [master](https://github.com/feiskyer/kube-copilot) branch for latest updates.
+
 Features:
 
 - Automate Kubernetes cluster operations using ChatGPT (GPT-4 or GPT-3.5).
