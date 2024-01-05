@@ -7,7 +7,7 @@ require (
 	github.com/pkoukk/tiktoken-go v0.1.6
 	github.com/sashabaranov/go-openai v1.17.10
 	github.com/spf13/cobra v1.8.0
-	google.golang.org/api v0.154.0
+	google.golang.org/api v0.155.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.29.0
 	k8s.io/client-go v0.29.0
