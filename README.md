@@ -15,7 +15,7 @@ Features:
 Install the copilot with the commands below:
 
 ```sh
-go install github.com/feiskyer/kube-copilot/cmd/kube-copilot
+go install github.com/feiskyer/kube-copilot/cmd/kube-copilot@latest
 ```
 
 ## How to use
