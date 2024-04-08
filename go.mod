@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/fatih/color v1.16.0
 	github.com/pkoukk/tiktoken-go v0.1.6
-	github.com/sashabaranov/go-openai v1.20.4
+	github.com/sashabaranov/go-openai v1.20.5
 	github.com/spf13/cobra v1.8.0
 	google.golang.org/api v0.170.0
 	gopkg.in/yaml.v2 v2.4.0
