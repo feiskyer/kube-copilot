@@ -1,10 +1,8 @@
 package assistants
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"math"
 	"strings"
 
 	"github.com/fatih/color"
@@ -39,31 +37,27 @@ func Assistant(model string, prompts []openai.ChatCompletionMessage, maxTokens i
 	if verbose {
 		color.Blue("Iteration 1): chatting with LLM\n")
 	}
-	req := openai.ChatCompletionRequest{
-		Model:       model,
-		MaxTokens:   maxTokens,
-		Temperature: math.SmallestNonzeroFloat32,
-		Messages:    chatHistory,
-	}
-	resp, err := client.CreateChatCompletion(context.Background(), req)
+
+	resp, err := client.Chat(model, maxTokens, chatHistory)
 	if err != nil {
 		return "", chatHistory, fmt.Errorf("chat completion error: %v", err)
 	}
+
 	chatHistory = append(chatHistory, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleAssistant,
-		Content: string(resp.Choices[0].Message.Content),
+		Content: string(resp),
 	})
 
 	if verbose {
-		color.Cyan("Initial response from LLM:\n%s\n\n", resp.Choices[0].Message.Content)
+		color.Cyan("Initial response from LLM:\n%s\n\n", resp)
 	}
 
 	var toolPrompt tools.ToolPrompt
-	if err = json.Unmarshal([]byte(resp.Choices[0].Message.Content), &toolPrompt); err != nil {
+	if err = json.Unmarshal([]byte(resp), &toolPrompt); err != nil {
 		if verbose {
-			color.Cyan("Unable to parse tool from prompt, assuming got final answer.\n\n", resp.Choices[0].Message.Content)
+			color.Cyan("Unable to parse tool from prompt, assuming got final answer.\n\n", resp)
 		}
-		return resp.Choices[0].Message.Content, chatHistory, nil
+		return resp, chatHistory, nil
 	}
 
 	iterations := 0
@@ -120,27 +114,22 @@ func Assistant(model string, prompts []openai.ChatCompletionMessage, maxTokens i
 			if verbose {
 				color.Blue("Iteration %d): chatting with LLM\n", iterations)
 			}
-			req := openai.ChatCompletionRequest{
-				Model:       openai.GPT4,
-				MaxTokens:   maxTokens,
-				Temperature: math.SmallestNonzeroFloat32,
-				Messages:    chatHistory,
-			}
-			resp, err = client.CreateChatCompletion(context.Background(), req)
+
+			resp, err := client.Chat(model, maxTokens, chatHistory)
 			if err != nil {
 				return "", chatHistory, fmt.Errorf("chat completion error: %v", err)
 			}
 
 			chatHistory = append(chatHistory, openai.ChatCompletionMessage{
 				Role:    openai.ChatMessageRoleAssistant,
-				Content: string(resp.Choices[0].Message.Content),
+				Content: string(resp),
 			})
 			if verbose {
-				color.Cyan("Intermediate response from LLM: %s\n\n", resp.Choices[0].Message.Content)
+				color.Cyan("Intermediate response from LLM: %s\n\n", resp)
 			}
 
 			// extract the tool prompt from the LLM response.
-			if err = json.Unmarshal([]byte(resp.Choices[0].Message.Content), &toolPrompt); err != nil {
+			if err = json.Unmarshal([]byte(resp), &toolPrompt); err != nil {
 				if verbose {
 					color.Cyan("Unable to parse tools from LLM, summarizing the final answer.\n\n")
 				}
@@ -149,11 +138,13 @@ func Assistant(model string, prompts []openai.ChatCompletionMessage, maxTokens i
 					Role:    openai.ChatMessageRoleUser,
 					Content: "Summarize all the chat history and respond to original question with final answer",
 				})
-				resp, err = client.CreateChatCompletion(context.Background(), req)
+
+				resp, err = client.Chat(model, maxTokens, chatHistory)
 				if err != nil {
 					return "", chatHistory, fmt.Errorf("chat completion error: %v", err)
 				}
-				return resp.Choices[0].Message.Content, chatHistory, nil
+
+				return resp, chatHistory, nil
 			}
 		}
 	}
