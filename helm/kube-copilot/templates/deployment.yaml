@@ -36,6 +36,18 @@ spec:
           - run
           - /app/Home.py
           env:
+          {{- if contains .Values.openai.apiBase "azure" }}
+          - name: AZURE_OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "kube-copilot.fullname" . }}
+                key: OPENAI_API_KEY
+          - name: AZURE_OPENAI_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "kube-copilot.fullname" . }}
+                key: OPENAI_API_BASE
+          {{- else }}
           - name: OPENAI_API_KEY
             valueFrom:
               secretKeyRef:
@@ -46,6 +58,7 @@ spec:
               secretKeyRef:
                 name: {{ include "kube-copilot.fullname" . }}
                 key: OPENAI_API_BASE
+          {{- end }}
           - name: OPENAI_API_MODEL
             valueFrom:
               secretKeyRef:

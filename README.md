@@ -2,8 +2,6 @@
 
 Kubernetes Copilot powered by OpenAI.
 
-> Please note that the Python version of this project (version number < v0.5.0) has been deprecated. Please switch to Go version in [master](https://github.com/feiskyer/kube-copilot) branch for latest updates.
-
 Features:
 
 - Automate Kubernetes cluster operations using ChatGPT (GPT-4 or GPT-3.5).
@@ -27,13 +25,13 @@ helm install kube-copilot kube-copilot \
   --set openai.apiKey=$OPENAI_API_KEY
 
 # Option 2: Azure OpenAI Service
-export OPENAI_API_KEY="<replace-this>"
-export OPENAI_API_BASE="<replace-this>"
+export AZURE_OPENAI_API_KEY="<replace-this>"
+export AZURE_OPENAI_ENDPOINT="<replace-this>"
 helm install kube-copilot kube-copilot \
   --repo https://feisky.xyz/kube-copilot \
   --set openai.apiModel=gpt-4 \
-  --set openai.apiKey=$OPENAI_API_KEY \
-  --set openai.apiBase=$OPENAI_API_BASE
+  --set openai.apiKey=$AZURE_OPENAI_API_KEY \
+  --set openai.apiBase=$AZURE_OPENAI_ENDPOINT
 
 # Forwarding requests to the service
 kubectl port-forward service/kube-copilot 8080:80
@@ -45,6 +43,13 @@ echo "Visit http://127.0.0.1:8080 to use the copilot"
 ```sh
 kubectl run -it --rm copilot \
   --env="OPENAI_API_KEY=$OPENAI_API_KEY" \
+  --restart=Never \
+  --image=ghcr.io/feiskyer/kube-copilot \
+  -- execute --verbose 'What Pods are using max memory in the cluster'
+
+kubectl run -it --rm copilot \
+  --env="AZURE_OPENAI_API_KEY=$AZURE_OPENAI_API_KEY" \
+  --env="AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT" \
   --restart=Never \
   --image=ghcr.io/feiskyer/kube-copilot \
   -- execute --verbose 'What Pods are using max memory in the cluster'

@@ -1,25 +1,26 @@
 # -*- coding: utf-8 -*-
 import os
-from langchain.chat_models import ChatOpenAI, AzureChatOpenAI
-from langchain.agents import AgentType, Tool, initialize_agent
-from langchain.agents.agent import AgentExecutor
-from langchain.callbacks import HumanApprovalCallbackHandler
-from langchain.agents.structured_chat.base import StructuredChatAgent
-from langchain.utilities import GoogleSearchAPIWrapper
-from langchain_experimental.plan_and_execute import PlanAndExecute, load_chat_planner
-from langchain_experimental.plan_and_execute.executors.base import ChainExecutor
+
+from langchain.agents import (AgentExecutor, AgentType,
+                              OpenAIMultiFunctionsAgent, Tool,
+                              initialize_agent)
 from langchain.agents.structured_chat.base import StructuredChatAgent
 from langchain.callbacks import StdOutCallbackHandler
 from langchain.memory import ConversationBufferMemory
-from langchain.agents import OpenAIMultiFunctionsAgent
-from langchain.schema.messages import SystemMessage
 from langchain.prompts import MessagesPlaceholder
-from langchain.agents import AgentExecutor
+from langchain.schema.messages import SystemMessage
+from langchain_openai import AzureChatOpenAI, ChatOpenAI
+from langchain_community.utilities import GoogleSearchAPIWrapper
+from langchain_community.callbacks.human import HumanApprovalCallbackHandler
+from langchain_experimental.plan_and_execute import (PlanAndExecute,
+                                                     load_chat_planner)
+from langchain_experimental.plan_and_execute.executors.base import \
+    ChainExecutor
+
+from kube_copilot.output import ChatOutputParser
+from kube_copilot.prompts import _base_prompt, get_planner_prompt
 from kube_copilot.python import PythonTool
 from kube_copilot.shell import KubeProcess
-from kube_copilot.prompts import get_planner_prompt, _base_prompt
-from kube_copilot.output import ChatOutputParser
-
 
 HUMAN_MESSAGE_TEMPLATE = """Previous steps: {previous_steps}
 
@@ -142,14 +143,17 @@ class FunctioningLLM:
 
 def get_llm_tools(model, additional_tools, enable_python=False, auto_approve=False):
     '''Initialize the LLM chain with useful tools.'''
-    if os.getenv("OPENAI_API_TYPE") == "azure" or (os.getenv("OPENAI_API_BASE") is not None and "azure" in os.getenv("OPENAI_API_BASE")):
+    if os.getenv("OPENAI_API_TYPE") == "azure" or (os.getenv("AZURE_OPENAI_ENDPOINT") is not None):
         deployment_name = model.replace(".", "")
+
         llm = AzureChatOpenAI(temperature=0,
                               request_timeout=120,
-                              openai_api_key=os.getenv("OPENAI_API_KEY"),
-                              openai_api_base=os.getenv("OPENAI_API_BASE"),
-                              openai_api_version="2023-05-15",
-                              deployment_name=deployment_name)
+                              openai_api_key=os.getenv('AZURE_OPENAI_API_KEY') or os.getenv(
+                                  'OPENAI_API_KEY'),
+                              azure_endpoint=os.getenv(
+                                  'AZURE_OPENAI_ENDPOINT'),
+                              deployment_name=deployment_name,
+                              openai_api_version="2024-02-01")
     else:
         llm = ChatOpenAI(model_name=model,
                          temperature=0,

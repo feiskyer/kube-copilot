@@ -25,7 +25,7 @@ versioning:
 .PHONY: publish
 publish: build
 	poetry publish
-	gh release create v$(shell poetry version -s)
+	# gh release create v$(shell poetry version -s)
 
 .PHONY: release-helm
 release-helm:
