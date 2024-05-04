@@ -5,7 +5,7 @@ import sys
 
 import streamlit as st
 import yaml
-from langchain.callbacks import StreamlitCallbackHandler
+from langchain_community.callbacks.streamlit.streamlit_callback_handler import StreamlitCallbackHandler
 
 from kube_copilot.chains import ReActLLM
 from kube_copilot.prompts import get_generate_prompt

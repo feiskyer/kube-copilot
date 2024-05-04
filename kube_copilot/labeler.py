@@ -1,5 +1,5 @@
-from langchain.callbacks.streamlit.streamlit_callback_handler import ToolRecord, LLMThoughtLabeler
-
+from langchain_community.callbacks.streamlit.streamlit_callback_handler import ToolRecord
+from langchain_community.callbacks.streamlit.streamlit_callback_handler import LLMThoughtLabeler
 
 CHECKMARK_EMOJI = "✅"
 THINKING_EMOJI = ":thinking_face:"

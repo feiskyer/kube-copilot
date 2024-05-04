@@ -5,12 +5,6 @@
 # module is not required, but highly recommended. It improves Streamlit's
 # ability to detect changes to files in your filesystem.
 
-# If you'd like to turn off this warning, set this to True.
-
-# Default: false
-# The value below was set in /Users/fei/.streamlit/config.toml
-disableWatchdogWarning = true
-
 # By default, Streamlit displays a warning when a user sets both a widget
 # default value in the function defining the widget and a widget value via
 # the widget's key in `st.session_state`.
