@@ -31,11 +31,11 @@ jobs:
           version=$(git describe --tags --abbrev)
           docker build -t ${{ env.REGISTRY }}/${{ github.repository_owner }}/kube-copilot:${version} .
           docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/kube-copilot:${version}
-          if [ ${GITHUB_REF_NAME} eq "master" ]; then
+          if [ ${GITHUB_REF_NAME} = "master" ]; then
             docker tag ${{ env.REGISTRY }}/${{ github.repository_owner }}/kube-copilot:${version} ${{ env.REGISTRY }}/${{ github.repository_owner }}/kube-copilot:latest
             docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/kube-copilot:latest
           fi
-          if [ ${GITHUB_REF_NAME} eq "main" ]; then
+          if [ ${GITHUB_REF_NAME} = "main" ]; then
             docker tag ${{ env.REGISTRY }}/${{ github.repository_owner }}/kube-copilot:${version} ${{ env.REGISTRY }}/${{ github.repository_owner }}/kube-copilot:py
             docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/kube-copilot:py
           fi
