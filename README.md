@@ -8,7 +8,6 @@ Features:
 - Diagnose and analyze the potential issues for Kubernetes workloads.
 - Generate the Kubernetes manifests based on the provided prompt instructions.
 - Utilize native kubectl and trivy commands for Kubernetes cluster access and security vulnerability scanning.
-- Access the web and perform Google searches without leaving the terminal.
 
 ## Install
 
@@ -71,7 +70,6 @@ pip install kube-copilot
 - Install [`trivy`](https://github.com/aquasecurity/trivy) to assess container image security issues (for the `audit` command).
 - Set the OpenAI [API key](https://platform.openai.com/account/api-keys) as the `OPENAI_API_KEY` environment variable to enable ChatGPT functionality.
   - For [Azure OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart?tabs=command-line&pivots=rest-api#retrieve-key-and-endpoint), please set `AZURE_OPENAI_API_KEY=<your-key>` and `AZURE_OPENAI_ENDPOINT=https://<replace-this>.openai.azure.com/`.
-- Google search is disabled by default. To enable it, set `GOOGLE_API_KEY` and `GOOGLE_CSE_ID` (obtain from [here](https://cloud.google.com/docs/authentication/api-keys?visit_id=638154888929258210-4085587461) and [here](http://www.google.com/cse/)).
 
 ## How to use web UI
 
