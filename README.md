@@ -2,6 +2,8 @@
 
 Kubernetes Copilot powered by OpenAI.
 
+**Note:**: the Python project has been moved to <https://github.com/feiskyer/kube-copilot-python>.
+
 Features:
 
 - Automate Kubernetes cluster operations using ChatGPT (GPT-4 or GPT-3.5).
