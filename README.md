@@ -57,11 +57,11 @@ Use "kube-copilot [command] --help" for more information about a command.
 
 ## Python Version
 
-Please note that the original project (version number < v0.5.0) is written in Python 3 and the codes are in [main](https://github.com/feiskyer/kube-copilot/tree/main) branch.
+Please refer [feiskyer/kube-copilot-python](https://github.com/feiskyer/kube-copilot-python) for the Python implementation of the same project.
 
 ## Contribution
 
-The project is opensource at github [feiskyer/kube-copilot](https://github.com/feiskyer/kube-copilot) with Apache License.
+The project is opensource at github [feiskyer/kube-copilot](https://github.com/feiskyer/kube-copilot) (Go) and [feiskyer/kube-copilot-python](https://github.com/feiskyer/kube-copilot-python) (Python) with Apache License.
 
 If you would like to contribute to the project, please follow these guidelines:
 
