@@ -3,9 +3,19 @@ entries:
   kube-copilot:
   - apiVersion: v2
     appVersion: 0.1.27
-    created: "2024-05-06T17:47:06.280874+08:00"
+    created: "2024-05-06T17:48:40.284311+08:00"
     description: Kubernetes Copilot powered by OpenAI
     digest: 59705996e378dcce85cdba494a26ce52e8ce7cf26f13effb5f18d18c838531e9
+    name: kube-copilot
+    type: application
+    urls:
+    - .pages/kube-copilot-0.1.27.tgz
+    version: 0.1.27
+  - apiVersion: v2
+    appVersion: 0.1.27
+    created: "2024-05-06T17:48:40.282134+08:00"
+    description: Kubernetes Copilot powered by OpenAI
+    digest: 698ba6e7acf8d5477cbdb5b8490f3e9f67f6d0f0b1ba30b9b907fbd06df248eb
     name: kube-copilot
     type: application
     urls:
@@ -13,7 +23,7 @@ entries:
     version: 0.1.27
   - apiVersion: v2
     appVersion: 0.1.26
-    created: "2024-05-06T17:47:06.283306+08:00"
+    created: "2024-05-06T17:48:40.284117+08:00"
     description: Kubernetes Copilot powered by OpenAI
     digest: a847ec8bb46c51823d89b2068a2f270fd4990e1571ed18deaeb42a3a369a89c2
     name: kube-copilot
@@ -23,7 +33,7 @@ entries:
     version: 0.1.26
   - apiVersion: v2
     appVersion: 0.1.25
-    created: "2024-05-06T17:47:06.283124+08:00"
+    created: "2024-05-06T17:48:40.283949+08:00"
     description: Kubernetes Copilot powered by OpenAI
     digest: 7d44f816dd37625118fe1305f3c9c4f89771a0630192d00db118baa0bc909695
     name: kube-copilot
@@ -33,7 +43,7 @@ entries:
     version: 0.1.25
   - apiVersion: v2
     appVersion: 0.1.22
-    created: "2024-05-06T17:47:06.282954+08:00"
+    created: "2024-05-06T17:48:40.283778+08:00"
     description: Kubernetes Copilot powered by OpenAI
     digest: e7b17df7bbbef90c3680d13630dd6265d5f8db69c3fb0a087f4002e34b1a6536
     name: kube-copilot
@@ -43,7 +53,7 @@ entries:
     version: 0.1.22
   - apiVersion: v2
     appVersion: 0.1.21
-    created: "2024-05-06T17:47:06.282784+08:00"
+    created: "2024-05-06T17:48:40.283598+08:00"
     description: Kubernetes Copilot powered by OpenAI
     digest: 3302d1b5cf147dfd7b98b2cc8e6eabc59b1aaaebd5415c3a73663838f1ea0f7a
     name: kube-copilot
@@ -53,7 +63,7 @@ entries:
     version: 0.1.21
   - apiVersion: v2
     appVersion: 0.1.20
-    created: "2024-05-06T17:47:06.28261+08:00"
+    created: "2024-05-06T17:48:40.283413+08:00"
     description: Kubernetes Copilot powered by OpenAI
     digest: 35143d1eaed14d724067cb5792939f3365600a97af26553edf92b9f97ee2aac4
     name: kube-copilot
@@ -63,7 +73,7 @@ entries:
     version: 0.1.20
   - apiVersion: v2
     appVersion: 0.1.19
-    created: "2024-05-06T17:47:06.282422+08:00"
+    created: "2024-05-06T17:48:40.283232+08:00"
     description: Kubernetes Copilot powered by OpenAI
     digest: d3832d92662527dc6d34c03b393672f60cabc35b183fd733d3a615d1d917f2e0
     name: kube-copilot
@@ -73,7 +83,7 @@ entries:
     version: 0.1.19
   - apiVersion: v2
     appVersion: 0.1.18
-    created: "2024-05-06T17:47:06.28222+08:00"
+    created: "2024-05-06T17:48:40.283059+08:00"
     description: Kubernetes Copilot powered by OpenAI
     digest: 31e16d45cee2729564a3a6a8ea1fffa9e8b2a27044e3341d1996c8342618ae63
     name: kube-copilot
@@ -83,7 +93,7 @@ entries:
     version: 0.1.18
   - apiVersion: v2
     appVersion: 0.1.17
-    created: "2024-05-06T17:47:06.281912+08:00"
+    created: "2024-05-06T17:48:40.282886+08:00"
     description: Kubernetes Copilot powered by OpenAI
     digest: 09afcaad3dfc224b309c0250b9e66655a198cf3d2d911ea24d69c4ae5581abf3
     name: kube-copilot
@@ -93,7 +103,7 @@ entries:
     version: 0.1.17
   - apiVersion: v2
     appVersion: 0.1.16
-    created: "2024-05-06T17:47:06.281433+08:00"
+    created: "2024-05-06T17:48:40.282708+08:00"
     description: Kubernetes Copilot powered by OpenAI
     digest: 8830d480f343dce68f8735bccf97d10af2abca605b70a06f2277a5e128d93814
     name: kube-copilot
@@ -103,7 +113,7 @@ entries:
     version: 0.1.16
   - apiVersion: v2
     appVersion: 0.1.15
-    created: "2024-05-06T17:47:06.281259+08:00"
+    created: "2024-05-06T17:48:40.282522+08:00"
     description: Kubernetes Copilot powered by OpenAI
     digest: 616aa4975e04bf985423851a44d2b74bbc1f740b4ec573c5b1151df65a405c88
     name: kube-copilot
@@ -113,7 +123,7 @@ entries:
     version: 0.1.15
   - apiVersion: v2
     appVersion: 0.1.14
-    created: "2024-05-06T17:47:06.28107+08:00"
+    created: "2024-05-06T17:48:40.28233+08:00"
     description: Kubernetes Copilot powered by OpenAI
     digest: 468443a11c31da206b74cb98299e1fe209cb49d6f2d2ef13b6b7936f0ed0fbea
     name: kube-copilot
@@ -121,4 +131,4 @@ entries:
     urls:
     - .pages/kube-copilot-0.1.14.tgz
     version: 0.1.14
-generated: "2024-05-06T17:47:06.280613+08:00"
+generated: "2024-05-06T17:48:40.281835+08:00"
