@@ -7,7 +7,7 @@ toolchain go1.22.1
 require (
 	github.com/fatih/color v1.16.0
 	github.com/pkoukk/tiktoken-go v0.1.6
-	github.com/sashabaranov/go-openai v1.23.0
+	github.com/sashabaranov/go-openai v1.24.1
 	github.com/spf13/cobra v1.8.0
 	google.golang.org/api v0.177.0
 	gopkg.in/yaml.v2 v2.4.0
