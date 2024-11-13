@@ -11,6 +11,30 @@ Features:
 
 ## Install
 
+### Install Locally
+
+Install the copilot with pip command below. It is highly recommended to use [pipx](https://pipx.pypa.io/stable/) or [venv](https://docs.python.org/3/library/venv.html) to install the copilot to avoid conflicts with other Python packages.
+
+```sh
+# Option 1: use pipx to install the copilot
+pipx install kube-copilot
+
+# Option 2: use venv to install the copilot
+python3 -m venv copilotenv
+source copilotenv/bin/activate
+pip install kube-copilot
+
+# Option 3: Use pip to install the copilot (not recommended)
+pip install kube-copilot
+```
+
+**Setup:**
+
+- Ensure [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) is installed on the local machine and the kubeconfig file is configured for Kubernetes cluster access.
+- Install [`trivy`](https://github.com/aquasecurity/trivy) to assess container image security issues (for the `audit` command).
+- Set the OpenAI [API key](https://platform.openai.com/account/api-keys) as the `OPENAI_API_KEY` environment variable to enable ChatGPT functionality.
+  - For [Azure OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart?tabs=command-line&pivots=rest-api#retrieve-key-and-endpoint), please set `AZURE_OPENAI_API_KEY=<your-key>` and `AZURE_OPENAI_ENDPOINT=https://<replace-this>.openai.azure.com/`.
+
 ### Run in Kubernetes
 
 **Option 1: Web UI with Helm (recommended)**
@@ -56,20 +80,6 @@ kubectl run -it --rm copilot \
 
 Refer [kubernetes.md](kubernetes.md) for more detailed steps.
 
-### Local Install
-
-Install the copilot with pip command below:
-
-```sh
-pip install kube-copilot
-```
-
-**Setup:**
-
-- Ensure [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) is installed on the local machine and the kubeconfig file is configured for Kubernetes cluster access.
-- Install [`trivy`](https://github.com/aquasecurity/trivy) to assess container image security issues (for the `audit` command).
-- Set the OpenAI [API key](https://platform.openai.com/account/api-keys) as the `OPENAI_API_KEY` environment variable to enable ChatGPT functionality.
-  - For [Azure OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart?tabs=command-line&pivots=rest-api#retrieve-key-and-endpoint), please set `AZURE_OPENAI_API_KEY=<your-key>` and `AZURE_OPENAI_ENDPOINT=https://<replace-this>.openai.azure.com/`.
 
 ## How to use web UI
 
