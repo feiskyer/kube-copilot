@@ -13,21 +13,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package tools
+package main
 
 import (
-	"os/exec"
-	"strings"
+	"fmt"
+
+	"github.com/spf13/cobra"
 )
 
-// PythonREPL runs the given Python script and returns the output.
-func PythonREPL(script string) (string, error) {
-	cmd := exec.Command("python3", "-c", script)
+const (
+	// VERSION is the version of kube-copilot.
+	VERSION = "v0.5.3"
+)
 
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return strings.TrimSpace(string(output)), err
-	}
-
-	return strings.TrimSpace(string(output)), nil
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print the version of kube-copilot",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("kube-copiolt %s\n", VERSION)
+	},
 }

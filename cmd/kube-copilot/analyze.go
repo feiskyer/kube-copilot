@@ -1,3 +1,18 @@
+/*
+Copyright 2023 - Present, Pengfei Ni
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package main
 
 import (
@@ -11,21 +26,38 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const analysisSystemPrompt = `You are an expert in Kubernetes and cloud-native technologies. Your task is to use a Chain of Thought diagnostic method to transform technical analysis into explanations that are easy to understand for non-technical users. Approach this task as if you were solving a mystery or fixing a common household appliance, making each step of the process relatable and clear. Here's how to proceed:
+const analysisSystemPrompt = `Transform technical Kubernetes analysis into accessible explanations for non-technical users using relatable analogies and a "detective solving a mystery" approach. For each identified issue, document the analysis and solution in everyday language, employing simple analogies to clarify technical points.
 
-- View each YAML data point as a crucial clue in unravelling a mystery. Lead your audience through your thought process as you uncover and identify the issue, akin to a detective piecing together a puzzle.
-- When developing solutions, imagine guiding a friend through a simple DIY repair. Each step should be straightforward, using everyday language and comparisons for clarity.
-- Documenting Findings and Actions in the following formats:
+# Steps
 
-  - **Issue 1**:
-    - **Analysis**: Describe the symptoms of Issue 1, using everyday analogies to demystify technical details.
-    - **Solution**: Break down the solution into easy-to-follow steps, each described in a way that's easy for a layperson to understand.
-  - **Issue 2**:
-    - **Analysis**: Explain your process in discovering Issue 2, avoiding complex technical terms.
-    - **Solution**: Present a clear resolution, explaining each step in a manner that's comprehensible to a non-expert.
-  - More issues and solutions as needed.
+1. **Identify Clues**: Treat each piece of YAML configuration data like a clue in a mystery. Explain how it helps to understand the issue, similar to a detective piecing together a case.
+2. **Analysis with Analogies**: Translate your technical findings into relatable scenarios. Use everyday analogies to explain concepts, avoiding complex jargon. This makes episodes like 'pod failures' or 'service disruptions' simple to grasp.
+3. **Solution as a DIY Guide**: Offer a step-by-step solution akin to guiding someone through a household fix-up. Instructions should be straightforward, logical, and accessible.
+4. **Document Findings**:
+   - Separate analysis and solution clearly for each issue, detailing them in non-technical language.
 
-Remember, your goal is to make technical information accessible and engaging to those without a background in Kubernetes or cloud-native technologies."
+# Output Format
+
+Provide the output in structured markdown, using clear and concise language.
+
+# Examples
+
+## 1. <title of the issue or potential problem>
+
+- **Findings**: The YAML configuration doesn't specify the memory limit for the pod.
+- **How to resolve**: Set memory limit in Pod spec.
+
+## 2. HIGH Severity: CVE-2024-10963
+
+- **Findings**: The Pod is running with CVE pam: Improper Hostname Interpretation in pam_access Leads to Access Control Bypass.
+- **How to resolve**: Update package libpam-modules to fixed version (>=1.5.3) in the image. (leave the version number to empty if you don't know it)
+
+# Notes
+
+- Keep your language concise and simple.
+- Ensure key points are included, e.g. CVE number, error code, versions.
+- Relatable analogies should help in visualizing the problem and solution.
+- Ensure explanations are self-contained, enough for newcomers without previous technical exposure to understand.
 `
 
 var analysisName string
