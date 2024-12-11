@@ -23,6 +23,7 @@ import (
 	"github.com/feiskyer/kube-copilot/pkg/assistants"
 	"github.com/feiskyer/kube-copilot/pkg/tools"
 	kubetools "github.com/feiskyer/kube-copilot/pkg/tools"
+	"github.com/feiskyer/kube-copilot/pkg/utils"
 	"github.com/sashabaranov/go-openai"
 	"github.com/spf13/cobra"
 )
@@ -94,6 +95,6 @@ var executeCmd = &cobra.Command{
 			color.Red(err.Error())
 			return
 		}
-		fmt.Println(response)
+		utils.RenderMarkdown(response)
 	},
 }

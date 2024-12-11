@@ -20,6 +20,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/feiskyer/kube-copilot/pkg/assistants"
+	"github.com/feiskyer/kube-copilot/pkg/utils"
 	"github.com/sashabaranov/go-openai"
 	"github.com/spf13/cobra"
 )
@@ -109,6 +110,6 @@ var diagnoseCmd = &cobra.Command{
 			color.Red(err.Error())
 			return
 		}
-		fmt.Println(response)
+		utils.RenderMarkdown(response)
 	},
 }

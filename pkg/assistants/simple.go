@@ -93,20 +93,25 @@ func Assistant(model string, prompts []openai.ChatCompletionMessage, maxTokens i
 
 		if toolPrompt.FinalAnswer != "" {
 			if verbose {
-				color.Cyan("Final answer: %s\n\n", toolPrompt.FinalAnswer)
+				color.Cyan("Final answer: %v\n\n", toolPrompt.FinalAnswer)
 			}
 			return toolPrompt.FinalAnswer, chatHistory, nil
 		}
 
 		if toolPrompt.Action.Name != "" {
+			var observation string
 			if verbose {
 				color.Blue("Iteration %d): executing tool %s\n", iterations, toolPrompt.Action.Name)
 				color.Cyan("Invoking %s tool with inputs: \n============\n%s\n============\n\n", toolPrompt.Action.Name, toolPrompt.Action.Input)
 			}
-			ret, err := tools.CopilotTools[toolPrompt.Action.Name](toolPrompt.Action.Input)
-			observation := strings.TrimSpace(ret)
-			if err != nil {
-				observation = fmt.Sprintf("Tool %s failed with error %s. Considering refine the inputs for the tool.", toolPrompt.Action.Name, ret)
+			if toolFunc, ok := tools.CopilotTools[toolPrompt.Action.Name]; ok {
+				ret, err := toolFunc(toolPrompt.Action.Input)
+				observation = strings.TrimSpace(ret)
+				if err != nil {
+					observation = fmt.Sprintf("Tool %s failed with error %s. Considering refine the inputs for the tool.", toolPrompt.Action.Name, ret)
+				}
+			} else {
+				observation = fmt.Sprintf("Tool %s is not available. Considering switch to other supported tools.", toolPrompt.Action.Name)
 			}
 			if verbose {
 				color.Cyan("Observation: %s\n\n", observation)
@@ -146,7 +151,7 @@ func Assistant(model string, prompts []openai.ChatCompletionMessage, maxTokens i
 			// extract the tool prompt from the LLM response.
 			if err = json.Unmarshal([]byte(resp), &toolPrompt); err != nil {
 				if verbose {
-					color.Cyan("Unable to parse tools from LLM, summarizing the final answer.\n\n")
+					color.Cyan("Unable to parse tools from LLM (%s), summarizing the final answer.\n\n", err.Error())
 				}
 
 				chatHistory = append(chatHistory, openai.ChatCompletionMessage{
