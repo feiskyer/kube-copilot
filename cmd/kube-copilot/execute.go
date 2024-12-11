@@ -24,6 +24,7 @@ import (
 	"github.com/feiskyer/kube-copilot/pkg/tools"
 	kubetools "github.com/feiskyer/kube-copilot/pkg/tools"
 	"github.com/feiskyer/kube-copilot/pkg/utils"
+	"github.com/feiskyer/kube-copilot/pkg/workflows"
 	"github.com/sashabaranov/go-openai"
 	"github.com/spf13/cobra"
 )
@@ -95,6 +96,15 @@ var executeCmd = &cobra.Command{
 			color.Red(err.Error())
 			return
 		}
-		utils.RenderMarkdown(response)
+
+		instructions := fmt.Sprintf("Extract the execuation results for user instructions and reformat in a concise Markdown response: %s", response)
+		result, err := workflows.AssistantFlow(model, instructions, verbose)
+		if err != nil {
+			color.Red(err.Error())
+			fmt.Println(response)
+			return
+		}
+
+		utils.RenderMarkdown(result)
 	},
 }
