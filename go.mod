@@ -9,7 +9,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/feiskyer/swarm-go v0.1.3
 	github.com/pkoukk/tiktoken-go v0.1.7
-	github.com/sashabaranov/go-openai v1.36.0
+	github.com/sashabaranov/go-openai v1.38.0
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/term v0.27.0
 	google.golang.org/api v0.211.0
