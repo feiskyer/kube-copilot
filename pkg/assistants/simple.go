@@ -43,6 +43,7 @@ type ToolPrompt struct {
 }
 
 // Assistant is the simplest AI assistant.
+// Deprecated: Use ReActFlow instead.
 func Assistant(model string, prompts []openai.ChatCompletionMessage, maxTokens int, countTokens bool, verbose bool, maxIterations int) (result string, chatHistory []openai.ChatCompletionMessage, err error) {
 	chatHistory = prompts
 	if len(prompts) == 0 {

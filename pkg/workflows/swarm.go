@@ -53,6 +53,27 @@ var (
 			{Name: "command", Type: reflect.TypeOf(""), Required: true},
 		},
 	)
+
+	pythonFunc = swarm.NewAgentFunction(
+		"python",
+		"Run python code",
+		func(args map[string]interface{}) (interface{}, error) {
+			code, ok := args["code"].(string)
+			if !ok {
+				return nil, fmt.Errorf("code not provided")
+			}
+
+			result, err := tools.PythonREPL(code)
+			if err != nil {
+				return nil, err
+			}
+
+			return result, nil
+		},
+		[]swarm.Parameter{
+			{Name: "code", Type: reflect.TypeOf(""), Required: true},
+		},
+	)
 )
 
 // NewSwarm creates a new Swarm client.
