@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"strings"
 
 	"github.com/feiskyer/kube-copilot/pkg/tools"
 	"github.com/feiskyer/swarm-go"
@@ -59,21 +58,25 @@ var (
 // NewSwarm creates a new Swarm client.
 func NewSwarm() (*swarm.Swarm, error) {
 	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return nil, fmt.Errorf("OPENAI_API_KEY is not set")
+	if apiKey != "" {
+		baseURL := os.Getenv("OPENAI_API_BASE")
+		if baseURL == "" {
+			return swarm.NewSwarm(swarm.NewOpenAIClient(apiKey)), nil
+		}
+
+		// OpenAI compatible LLM
+		return swarm.NewSwarm(swarm.NewOpenAIClientWithBaseURL(apiKey, baseURL)), nil
 	}
 
-	baseURL := os.Getenv("OPENAI_API_BASE")
-	// OpenAI
-	if baseURL == "" {
-		return swarm.NewSwarm(swarm.NewOpenAIClient(apiKey)), nil
+	azureAPIKey := os.Getenv("AZURE_OPENAI_API_KEY")
+	azureAPIBase := os.Getenv("AZURE_OPENAI_API_BASE")
+	azureAPIVersion := os.Getenv("AZURE_OPENAI_API_VERSION")
+	if azureAPIVersion == "" {
+		azureAPIVersion = "2025-02-01-preview"
+	}
+	if azureAPIKey != "" && azureAPIBase != "" {
+		return swarm.NewSwarm(swarm.NewAzureOpenAIClient(azureAPIKey, azureAPIBase, azureAPIVersion)), nil
 	}
 
-	// Azure OpenAI
-	if strings.Contains(baseURL, "azure") {
-		return swarm.NewSwarm(swarm.NewAzureOpenAIClient(apiKey, baseURL)), nil
-	}
-
-	// OpenAI compatible LLM
-	return swarm.NewSwarm(swarm.NewOpenAIClientWithBaseURL(apiKey, baseURL)), nil
+	return nil, fmt.Errorf("OPENAI_API_KEY or AZURE_OPENAI_API_KEY is not set")
 }

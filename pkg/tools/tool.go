@@ -25,15 +25,3 @@ var CopilotTools = map[string]Tool{
 	"trivy":   Trivy,
 	"kubectl": Kubectl,
 }
-
-// ToolPrompt is the JSON format for the prompt.
-type ToolPrompt struct {
-	Question string `json:"question"`
-	Thought  string `json:"thought,omitempty"`
-	Action   struct {
-		Name  string `json:"name"`
-		Input string `json:"input"`
-	} `json:"action,omitempty"`
-	Observation string `json:"observation,omitempty"`
-	FinalAnswer string `json:"final_answer,omitempty"`
-}

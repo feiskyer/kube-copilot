@@ -30,6 +30,18 @@ const (
 	defaultMaxIterations = 10
 )
 
+// ToolPrompt is the JSON format for the prompt.
+type ToolPrompt struct {
+	Question string `json:"question"`
+	Thought  string `json:"thought,omitempty"`
+	Action   struct {
+		Name  string `json:"name"`
+		Input string `json:"input"`
+	} `json:"action,omitempty"`
+	Observation string `json:"observation,omitempty"`
+	FinalAnswer string `json:"final_answer,omitempty"`
+}
+
 // Assistant is the simplest AI assistant.
 func Assistant(model string, prompts []openai.ChatCompletionMessage, maxTokens int, countTokens bool, verbose bool, maxIterations int) (result string, chatHistory []openai.ChatCompletionMessage, err error) {
 	chatHistory = prompts
@@ -67,7 +79,7 @@ func Assistant(model string, prompts []openai.ChatCompletionMessage, maxTokens i
 		color.Cyan("Initial response from LLM:\n%s\n\n", resp)
 	}
 
-	var toolPrompt tools.ToolPrompt
+	var toolPrompt ToolPrompt
 	if err = json.Unmarshal([]byte(resp), &toolPrompt); err != nil {
 		if verbose {
 			color.Cyan("Unable to parse tool from prompt, assuming got final answer.\n\n", resp)

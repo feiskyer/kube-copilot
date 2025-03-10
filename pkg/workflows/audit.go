@@ -56,13 +56,13 @@ Example output:
 
 // AuditFlow conducts a structured security audit of a Kubernetes Pod.
 func AuditFlow(model string, namespace string, name string, verbose bool) (string, error) {
-	auditWorkflow := &swarm.Workflow{
+	auditWorkflow := &swarm.SimpleFlow{
 		Name:     "audit-workflow",
 		Model:    model,
 		MaxTurns: 30,
 		Verbose:  verbose,
 		System:   "You are an expert on Kubernetes helping user to audit the security issues for a given Pod.",
-		Steps: []swarm.WorkflowStep{
+		Steps: []swarm.SimpleFlowStep{
 			{
 				Name:         "audit",
 				Instructions: auditPrompt,

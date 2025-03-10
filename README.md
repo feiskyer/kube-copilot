@@ -42,13 +42,16 @@ Available Commands:
   execute     Execute operations based on prompt instructions
   generate    Generate Kubernetes manifests
   help        Help about any command
+  version     Print the version of kube-copilot
 
 Flags:
-  -c, --count-tokens     Print tokens count
-  -h, --help             help for kube-copilot
-  -t, --max-tokens int   Max tokens for the GPT model (default 1024)
-  -m, --model string     OpenAI model to use (default "gpt-4")
-  -v, --verbose          Enable verbose output (default true)
+  -c, --count-tokens         Print tokens count
+  -h, --help                 help for kube-copilot
+  -x, --max-iterations int   Max iterations for the agent running (default 10)
+  -t, --max-tokens int       Max tokens for the GPT model (default 2048)
+  -m, --model string         OpenAI model to use (default "gpt-4")
+  -v, --verbose              Enable verbose output
+      --version              version for kube-copilot
 
 Use "kube-copilot [command] --help" for more information about a command.
 ```
@@ -62,13 +65,15 @@ Set the OpenAI [API key](https://platform.openai.com/account/api-keys) as the `O
 </details>
 
 <details>
+
 <summary>Azure OpenAI</summary>
 
 For [Azure OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quickstart?tabs=command-line&pivots=rest-api#retrieve-key-and-endpoint), set the following environment variables:
 
-- `OPENAI_API_KEY=<your-api-key>`
-- `OPENAI_API_TYPE=azure`
-- `OPENAI_API_BASE=https://<replace-this>.openai.azure.com/`
+- `AZURE_OPENAI_API_KEY=<your-api-key>`
+- `AZURE_OPENAI_API_BASE=https://<replace-this>.openai.azure.com/`
+- `AZURE_OPENAI_API_VERSION=2025-02-01-preview`
+
 </details>
 
 <details>
@@ -83,19 +88,53 @@ For Ollama or other OpenAI compatible LLMs, set the following environment variab
 ## Key Features
 
 <details>
-<summary>Audit Security Issues for Pod</summary>
+<summary>Analyze issues for a given kubernetes resource</summary>
 
-`kube-copilot audit POD [NAMESPACE]` will audit security issues for a Pod:
+`kube-copilot analyze [--resource pod] --name <resource-name> [--namespace <namespace>]` will analyze potential issues for the given resource object:
 
 ```sh
-Usage: kube-copilot audit [OPTIONS] POD [NAMESPACE]
+Analyze issues for a given resource
 
-  audit security issues for a Pod
+Usage:
+  kube-copilot analyze [flags]
 
-Options:
-  --verbose      Enable verbose information of copilot execution steps
-  --model MODEL  OpenAI model to use for copilot execution, default is gpt-4
-  --help         Show this message and exit.
+Flags:
+  -h, --help               help for analyze
+      --name string        Resource name
+  -n, --namespace string   Resource namespace (default "default")
+  -r, --resource string    Resource type (default "pod")
+
+Global Flags:
+  -c, --count-tokens         Print tokens count
+  -x, --max-iterations int   Max iterations for the agent running (default 10)
+  -t, --max-tokens int       Max tokens for the GPT model (default 2048)
+  -m, --model string         OpenAI model to use (default "gpt-4")
+  -v, --verbose              Enable verbose output
+```
+</details>
+
+<details>
+<summary>Audit Security Issues for Pod</summary>
+
+`kube-copilot audit --name <pod-name> [--namespace <namespace>]` will audit security issues for a Pod:
+
+```sh
+Audit security issues for a Pod
+
+Usage:
+  kube-copilot audit [flags]
+
+Flags:
+  -h, --help               help for audit
+      --name string        Pod name
+  -n, --namespace string   Pod namespace (default "default")
+
+Global Flags:
+  -c, --count-tokens         Print tokens count
+  -x, --max-iterations int   Max iterations for the agent running (default 10)
+  -t, --max-tokens int       Max tokens for the GPT model (default 2048)
+  -m, --model string         OpenAI model to use (default "gpt-4")
+  -v, --verbose              Enable verbose output
 ```
 </details>
 
@@ -103,71 +142,76 @@ Options:
 <details>
 <summary>Diagnose Problems for Pod</summary>
 
-`kube-copilot diagnose POD [NAMESPACE]` will diagnose problems for a Pod:
+`kube-copilot diagnose --name <pod-name> [--namespace <namespace>]` will diagnose problems for a Pod:
 
 ```sh
-Usage: kube-copilot diagnose [OPTIONS] POD [NAMESPACE]
+Diagnose problems for a Pod
 
-  diagnose problems for a Pod
+Usage:
+  kube-copilot diagnose [flags]
 
-Options:
-  --verbose      Enable verbose information of copilot execution steps
-  --model MODEL  OpenAI model to use for copilot execution, default is gpt-4
-  --help         Show this message and exit.
+Flags:
+  -h, --help               help for diagnose
+      --name string        Pod name
+  -n, --namespace string   Pod namespace (default "default")
+
+Global Flags:
+  -c, --count-tokens         Print tokens count
+  -x, --max-iterations int   Max iterations for the agent running (default 10)
+  -t, --max-tokens int       Max tokens for the GPT model (default 2048)
+  -m, --model string         OpenAI model to use (default "gpt-4")
+  -v, --verbose              Enable verbose output
 ```
 </details>
 
 <details>
-<summary>Analyze Potential Issues for k8s Object</summary>
+<summary>Execute operations based on prompt instructions</summary>
 
-`kube-copilot analyze RESOURCE NAME [NAMESPACE]` will analyze potential issues for the given resource object:
-
-```sh
-Usage: kube-copilot analyze [OPTIONS] RESOURCE NAME [NAMESPACE]
-
-  analyze issues for a given resource
-
-Options:
-  --verbose     Enable verbose information of copilot execution steps
-  --model TEXT  OpenAI model to use for copilot execution, default is gpt-4
-  --help        Show this message and exit.
-```
-</details>
-
-<details>
-<summary>Execute Operations Based on Prompt Instructions</summary>
-
-`kube-copilot execute INSTRUCTIONS` will execute operations based on prompt instructions.
+`kube-copilot execute --instructions <instructions>` will execute operations based on prompt instructions.
 It could also be used to ask any questions.
 
 ```sh
-Usage: kube-copilot execute [OPTIONS] INSTRUCTIONS
+Execute operations based on prompt instructions
 
-  execute operations based on prompt instructions
+Usage:
+  kube-copilot execute [flags]
 
-Options:
-  --verbose      Enable verbose information of copilot execution steps
-  --model MODEL  OpenAI model to use for copilot execution, default is gpt-4
-  --help         Show this message and exit.
+Flags:
+  -h, --help                  help for execute
+      --instructions string   instructions to execute
+
+Global Flags:
+  -c, --count-tokens         Print tokens count
+  -x, --max-iterations int   Max iterations for the agent running (default 10)
+  -t, --max-tokens int       Max tokens for the GPT model (default 2048)
+  -m, --model string         OpenAI model to use (default "gpt-4")
+  -v, --verbose              Enable verbose output
 ```
 </details>
 
 <details>
 <summary>Generate Kubernetes Manifests</summary>
 
-Use the `kube-copilot generate` command to create Kubernetes manifests based on
+Use the `kube-copilot generate --prompt <prompt>` command to create Kubernetes manifests based on
 the provided prompt instructions. After generating the manifests, you will be
 prompted to confirm whether you want to apply them.
 
 ```sh
-Usage: kube-copilot generate [OPTIONS] INSTRUCTIONS
+Generate Kubernetes manifests
 
-  generate Kubernetes manifests
+Usage:
+  kube-copilot generate [flags]
 
-Options:
-  --verbose     Enable verbose information of copilot execution steps
-  --model TEXT  OpenAI model to use for copilot execution, default is gpt-4
-  --help        Show this message and exit.
+Flags:
+  -h, --help            help for generate
+  -p, --prompt string   Prompts to generate Kubernetes manifests
+
+Global Flags:
+  -c, --count-tokens         Print tokens count
+  -x, --max-iterations int   Max iterations for the agent running (default 10)
+  -t, --max-tokens int       Max tokens for the GPT model (default 2048)
+  -m, --model string         OpenAI model to use (default "gpt-4")
+  -v, --verbose              Enable verbose output
 ```
 </details>
 

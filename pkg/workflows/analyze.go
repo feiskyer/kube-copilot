@@ -45,13 +45,13 @@ Provide the output in structured markdown, using clear and concise language.
 
 // AnalysisFlow runs a workflow to analyze Kubernetes issues and provide solutions in a human-readable format.
 func AnalysisFlow(model string, manifest string, verbose bool) (string, error) {
-	analysisWorkflow := &swarm.Workflow{
+	analysisWorkflow := &swarm.SimpleFlow{
 		Name:     "analysis-workflow",
 		Model:    model,
 		MaxTurns: 30,
 		Verbose:  verbose,
 		System:   "You are an expert on Kubernetes helping user to analyze issues and provide solutions.",
-		Steps: []swarm.WorkflowStep{
+		Steps: []swarm.SimpleFlowStep{
 			{
 				Name:         "analyze",
 				Instructions: analysisPrompt,

@@ -39,13 +39,13 @@ Your expertise ensures these manifests are not only functional but also complian
 
 // GeneratorFlow runs a workflow to generate Kubernetes YAML manifests based on the provided instructions.
 func GeneratorFlow(model string, instructions string, verbose bool) (string, error) {
-	generatorWorkflow := &swarm.Workflow{
+	generatorWorkflow := &swarm.SimpleFlow{
 		Name:     "generator-workflow",
 		Model:    model,
 		MaxTurns: 30,
 		Verbose:  verbose,
 		System:   "You are an expert on Kubernetes helping user to generate Kubernetes YAML manifests.",
-		Steps: []swarm.WorkflowStep{
+		Steps: []swarm.SimpleFlowStep{
 			{
 				Name:         "generator",
 				Instructions: generatePrompt,

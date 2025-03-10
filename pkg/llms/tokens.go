@@ -44,6 +44,11 @@ var tokenLimitsPerModel = map[string]int{
 	"gpt-4":                  8192,
 	"text-davinci-002":       4096,
 	"text-davinci-003":       4096,
+	"gpt-4o":                 128000,
+	"gpt-4o-mini":            128000,
+	"o1-mini":                128000,
+	"o3-mini":                200000,
+	"o1":                     200000,
 }
 
 // GetTokenLimits returns the maximum number of tokens for the given model.
@@ -59,7 +64,11 @@ func GetTokenLimits(model string) int {
 // NumTokensFromMessages returns the number of tokens in the given messages.
 // OpenAI Cookbook: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
 func NumTokensFromMessages(messages []openai.ChatCompletionMessage, model string) (numTokens int) {
-	tkm, err := tiktoken.EncodingForModel(model)
+	encodingModel := model
+	if model == "o1-mini" || model == "o3-mini" || model == "o1" || model == "o3" {
+		encodingModel = "gpt-4o"
+	}
+	tkm, err := tiktoken.EncodingForModel(encodingModel)
 	if err != nil {
 		err = fmt.Errorf("encoding for model: %v", err)
 		log.Println(err)
@@ -73,7 +82,12 @@ func NumTokensFromMessages(messages []openai.ChatCompletionMessage, model string
 		"gpt-4-0314",
 		"gpt-4-32k-0314",
 		"gpt-4-0613",
-		"gpt-4-32k-0613":
+		"gpt-4-32k-0613",
+		"gpt-4o",
+		"gpt-4o-mini",
+		"o1-mini",
+		"o3-mini",
+		"o1":
 		tokensPerMessage = 3
 		tokensPerName = 1
 	case "gpt-3.5-turbo-0301":

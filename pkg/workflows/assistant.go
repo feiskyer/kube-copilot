@@ -32,13 +32,13 @@ Provide a concise Markdown response in a clear, logical order. Each step should 
 
 // AssistantFlow runs a simple workflow by following the given instructions.
 func AssistantFlow(model string, instructions string, verbose bool) (string, error) {
-	assistantFlow := &swarm.Workflow{
+	assistantFlow := &swarm.SimpleFlow{
 		Name:     "assistant-workflow",
 		Model:    model,
 		MaxTurns: 30,
 		Verbose:  verbose,
 		System:   "You are an expert on Kubernetes helping user for the given instructions.",
-		Steps: []swarm.WorkflowStep{
+		Steps: []swarm.SimpleFlowStep{
 			{
 				Name:         "assistant",
 				Instructions: assistantPrompt,
