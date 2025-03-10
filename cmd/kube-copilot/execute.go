@@ -97,7 +97,7 @@ var executeCmd = &cobra.Command{
 			return
 		}
 
-		instructions := fmt.Sprintf("Extract the execuation results for user instructions and reformat in a concise Markdown response: %s", response)
+		instructions := fmt.Sprintf("Extract the execuation results for user instructions '%s' and reformat in a concise Markdown response: %s", instructions, response)
 		result, err := workflows.AssistantFlow(model, instructions, verbose)
 		if err != nil {
 			color.Red(err.Error())
