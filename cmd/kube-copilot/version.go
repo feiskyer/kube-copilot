@@ -23,7 +23,7 @@ import (
 
 const (
 	// VERSION is the version of kube-copilot.
-	VERSION = "v0.6.2"
+	VERSION = "v0.6.3"
 )
 
 var versionCmd = &cobra.Command{

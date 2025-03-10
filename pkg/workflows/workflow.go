@@ -34,57 +34,64 @@ Provide a concise Markdown response in a clear, logical order. Each step should 
 - Use precise terminology and include explanations only as needed based on the complexity of the task.
 - Ensure instructions are applicable across major cloud providers (GKE, EKS, AKS) unless specified otherwise.`
 
-const reactPrompt = `As a technical expert in Kubernetes and cloud-native networking, your task follows a specific Chain of Thought methodology to ensure thoroughness and accuracy while adhering to the constraints provided.
+const reactPrompt = `As a technical expert in Kubernetes and cloud-native networking, you are required to help user to resolve their problem using a detailed chain-of-thought methodology.
+Your responses must follow a strict JSON format and simulate tool execution via function calls without instructing the user to manually run any commands.
 
 # Available Tools
 
-- kubectl: Useful for executing kubectl commands. Remember to use '--sort-by=memory' or '--sort-by=cpu' when running 'kubectl top' command.  Input: a kubectl command. Output: the result of the command.
-- python: This is a Python interpreter. Use it for executing Python code with the Kubernetes Python SDK client. Ensure the results are output using "print(...)". The input is a Python script, and the output will be the stdout and stderr of this script.
-- trivy: Useful for executing trivy image command to scan images for vulnerabilities. Input: an image for security scanning. Output: the vulnerabilities found in the image.
+- kubectl: Execute Kubernetes commands. Use options like '--sort-by=memory' or '--sort-by=cpu' with 'kubectl top' when necessary. Input: a kubectl command. Output: the command result.
+- python: Run Python scripts that leverage the Kubernetes Python SDK client. Ensure that output is generated using 'print(...)'. Input: a Python script. Output: the stdout and stderr.
+- trivy: Scan container images for vulnerabilities using the 'trivy image' command. Input: an image name. Output: a report of vulnerabilities.
 
 # Guidelines
 
-Let's think step by step and reason through the problem.
-
-1. Carefully analyze the user's instructions or questions to understand their goal.
-2. If necessary, break down complex Kubernetes operations into a detailed, clear step-by-step process to achieve the desired outcome. Ensure 'action' is set when the step need to call a tool.
-3. Call the appropriate tools to get the information needed to solve the problem.
-4. Analyze the results of the tools and provide a detailed, clear step-by-step process to achieve the desired outcome.
-5. Iterate the above steps if there are still some issues to solve (e.g. need to run kubectl to retrieve more information).
-6. Set 'final_answer' when the problem is solved.
-
-Throughout your response process, ensure that each response is concise and strictly adheres to the guidelines provided, with a clear justification for each step taken. 
-The ultimate goal is to identify the root cause of issues within the domains of Kubernetes and cloud-native networking and to provide clear, actionable solutions, 
-while staying within the operational constraints of 'kubectl', 'python', or 'trivy image' for diagnostics and troubleshooting and avoiding any installation operations.
+1. Analyze the user's instruction and their intent carefully to understand the issue or goal.
+2. Formulate a detailed, step-by-step plan to achieve the goal and user intent. Document this plan in the 'plan' field.
+3. For any troubleshooting step that requires tool execution, include a function call by populating the 'action' field with:
+   - 'name': one of [kubectl, python, trivy].
+   - 'input': the exact command or script, including any required context (e.g., raw YAML, error logs, image name).
+4. DO NOT instruct the user to manually run any commands. All tool calls must be performed by the assistant through the 'action' field.
+5. After a tool is invoked, analyze its result (which will be provided in the 'observation' field) and update your chain-of-thought accordingly.
+6. Do not set the 'final_answer' field when a tool call is pending; only set 'final_answer' when no further tool calls are required.
+7. Maintain a clear and concise chain-of-thought in the 'thought' field. Include a detailed, step-by-step process in the 'plan' field.
+8. Your entire response must be a valid JSON object with exactly the following keys: 'question', 'thought', 'plan', 'current_step', 'action', 'observation', and 'final_answer'. Do not include any additional text or markdown formatting.
 
 # Output Format
 
-Use this JSON format for responses:
+Your final output must strictly adhere to this JSON structure:
 
 {
-	"question": "<input question>",
-	"thought": "<your thought process>",
-	"action": {
-		"name": "<action to take, choose from tools [kubectl, python, trivy]. Do not set final_answer when an action is required>",
-		"input": "<input for the action. ensure all contexts are added as input if required, e.g. raw YAML or image name.>"
-	},
-	"observation": "<result of the action, set by external tools>",
-	"final_answer": "<your final findings, only set after completed all processes and no action is required>"
+  "question": "<input question>",
+  "plan": "<step-by-step plan to achieve the desired outcome>",
+  "thought": "<your detailed thought process>",
+  "next_step": "<the next step to be executed>",
+  "action": {
+      "name": "<tool to call for next step: kubectl, python, or trivy>",
+      "input": "<exact command or script with all required context>"
+  },
+  "observation": "<result from the tool call of the action, to be filled in after action execution>",
+  "final_answer": "<your final findings; only fill this when no further actions are required>"
 }
+
+# Important:
+- Always use function calls via the 'action' field for tool invocations. NEVER output plain text instructions for the user to run a command manually.
+- Ensure that the chain-of-thought (fields 'thought' and 'plan') is clear and concise, leading logically to the tool call if needed.
+- The final answer should only be provided when all necessary tool invocations have been completed and the issue is fully resolved.
+
+Follow these instructions strictly to ensure a seamless, automated diagnostic and troubleshooting process.
 `
 
-// AssistantFlow runs a simple workflow by following the given instructions.
-func AssistantFlow(model string, instructions string, verbose bool) (string, error) {
-	assistantFlow := &swarm.SimpleFlow{
-		Name:     "assistant-workflow",
+// SimpleFlow runs a simple workflow by following the given instructions.
+func SimpleFlow(model string, systemPrompt string, instructions string, verbose bool) (string, error) {
+	simpleFlow := &swarm.SimpleFlow{
+		Name:     "simple-workflow",
 		Model:    model,
 		MaxTurns: 30,
 		Verbose:  verbose,
-		System:   "You are an expert on Kubernetes helping user for the given instructions.",
 		Steps: []swarm.SimpleFlowStep{
 			{
-				Name:         "assistant",
-				Instructions: assistantPrompt,
+				Name:         "simple",
+				Instructions: systemPrompt,
 				Inputs: map[string]interface{}{
 					"instructions": instructions,
 				},
@@ -100,8 +107,8 @@ func AssistantFlow(model string, instructions string, verbose bool) (string, err
 	}
 
 	// Initialize and run workflow
-	assistantFlow.Initialize()
-	result, _, err := assistantFlow.Run(context.Background(), client)
+	simpleFlow.Initialize()
+	result, _, err := simpleFlow.Run(context.Background(), client)
 	if err != nil {
 		return "", err
 	}
@@ -109,10 +116,17 @@ func AssistantFlow(model string, instructions string, verbose bool) (string, err
 	return result, nil
 }
 
-// ToolPrompt is the JSON format for the prompt.
-type ToolPrompt struct {
+// AssistantFlow runs a simple workflow with kubernetes assistant prompt.
+func AssistantFlow(model string, instructions string, verbose bool) (string, error) {
+	return SimpleFlow(model, assistantPrompt, instructions, verbose)
+}
+
+// ReactAction is the JSON format for the react action.
+type ReactAction struct {
 	Question string `json:"question"`
+	Plan     string `json:"plan,omitempty"`
 	Thought  string `json:"thought,omitempty"`
+	NextStep string `json:"next_step,omitempty"`
 	Action   struct {
 		Name  string `json:"name"`
 		Input string `json:"input"`
@@ -128,7 +142,6 @@ func ReActFlow(model string, instructions string, verbose bool) (string, error) 
 		Model:    model,
 		MaxTurns: 30,
 		Verbose:  verbose,
-		System:   reactPrompt,
 		Steps: []swarm.SimpleFlowStep{
 			{
 				Name:         "react",
@@ -136,7 +149,7 @@ func ReActFlow(model string, instructions string, verbose bool) (string, error) 
 				Inputs: map[string]interface{}{
 					"instructions": instructions,
 				},
-				Functions: []swarm.AgentFunction{trivyFunc, kubectlFunc, pythonFunc},
+				// Functions: []swarm.AgentFunction{trivyFunc, kubectlFunc, pythonFunc},
 			},
 		},
 	}
@@ -167,58 +180,57 @@ func ReActFlow(model string, instructions string, verbose bool) (string, error) 
 			color.Cyan("Iteration %d): response from LLM:\n%s\n\n", iterations, result)
 		}
 
-		var toolPrompt ToolPrompt
-		if err = json.Unmarshal([]byte(result), &toolPrompt); err != nil {
+		var reactAction ReactAction
+		if err = json.Unmarshal([]byte(result), &reactAction); err != nil {
 			if verbose {
 				color.Cyan("Unable to parse tool from prompt, assuming got final answer.\n\n", result)
 			}
 			return result, nil
 		}
 		if verbose {
-			color.Cyan("Thought: %s\n\n", toolPrompt.Thought)
+			color.Cyan("Thought: %s\n\n", reactAction.Thought)
 		}
 
 		if iterations > maxIterations {
 			color.Red("Max iterations reached")
-			return toolPrompt.FinalAnswer, nil
+			return reactAction.FinalAnswer, nil
 		}
 
-		if toolPrompt.FinalAnswer != "" {
+		if reactAction.FinalAnswer != "" {
 			if verbose {
-				color.Cyan("Final answer: %v\n\n", toolPrompt.FinalAnswer)
+				color.Cyan("Final answer: %v\n\n", reactAction.FinalAnswer)
 			}
-			return toolPrompt.FinalAnswer, nil
+			return reactAction.FinalAnswer, nil
 		}
 
-		if toolPrompt.Action.Name != "" {
+		if reactAction.Action.Name != "" {
 			var observation string
 			if verbose {
-				color.Blue("Iteration %d): executing tool %s\n", iterations, toolPrompt.Action.Name)
-				color.Cyan("Invoking %s tool with inputs: \n============\n%s\n============\n\n", toolPrompt.Action.Name, toolPrompt.Action.Input)
+				color.Blue("Iteration %d): executing tool %s\n", iterations, reactAction.Action.Name)
+				color.Cyan("Invoking %s tool with inputs: \n============\n%s\n============\n\n", reactAction.Action.Name, reactAction.Action.Input)
 			}
-			if toolFunc, ok := tools.CopilotTools[toolPrompt.Action.Name]; ok {
-				ret, err := toolFunc(toolPrompt.Action.Input)
+			if toolFunc, ok := tools.CopilotTools[reactAction.Action.Name]; ok {
+				ret, err := toolFunc(reactAction.Action.Input)
 				observation = strings.TrimSpace(ret)
 				if err != nil {
-					observation = fmt.Sprintf("Tool %s failed with error %s. Considering refine the inputs for the tool.", toolPrompt.Action.Name, ret)
+					observation = fmt.Sprintf("Tool %s failed with error %s. Considering refine the inputs for the tool.", reactAction.Action.Name, ret)
 				}
 			} else {
-				observation = fmt.Sprintf("Tool %s is not available. Considering switch to other supported tools.", toolPrompt.Action.Name)
+				observation = fmt.Sprintf("Tool %s is not available. Considering switch to other supported tools.", reactAction.Action.Name)
 			}
 			if verbose {
 				color.Cyan("Observation: %s\n\n", observation)
 			}
 
 			// Start next iteration of LLM chat.
-			toolPrompt.Observation = observation
-			assistantMessage, _ := json.Marshal(toolPrompt)
+			reactAction.Observation = observation
+			assistantMessage, _ := json.Marshal(reactAction)
 
 			reactFlow = &swarm.SimpleFlow{
 				Name:     "react-workflow",
 				Model:    model,
 				MaxTurns: 30,
 				Verbose:  verbose,
-				System:   reactPrompt,
 				Steps: []swarm.SimpleFlowStep{
 					{
 						Name:         "react",
@@ -227,7 +239,7 @@ func ReActFlow(model string, instructions string, verbose bool) (string, error) 
 							"instructions": fmt.Sprintf("User input: %s\n\nObservation: %s", instructions, string(assistantMessage)),
 							"chatHistory":  chatHistory,
 						},
-						Functions: []swarm.AgentFunction{trivyFunc, kubectlFunc, pythonFunc},
+						// Functions: []swarm.AgentFunction{trivyFunc, kubectlFunc, pythonFunc},
 					},
 				},
 			}
