@@ -480,7 +480,6 @@ func NewReActFlow(model string, instructions string, verbose bool, maxIterations
 	return &ReActFlow{
 		Model:         model,
 		Instructions:  instructions,
-		Verbose:       verbose,
 		MaxIterations: maxIterations,
 		PlanTracker:   NewPlanTracker(),
 		Client:        client,
@@ -518,7 +517,6 @@ func (r *ReActFlow) Plan(ctx context.Context) error {
 		Name:     "plan",
 		Model:    r.Model,
 		MaxTurns: 30,
-		Verbose:  r.Verbose,
 		Steps: []swarm.SimpleFlowStep{
 			{
 				Name:         "plan-step",
@@ -526,7 +524,6 @@ func (r *ReActFlow) Plan(ctx context.Context) error {
 				Inputs: map[string]interface{}{
 					"instructions": fmt.Sprintf("First, create a clear and actionable step-by-step plan to solve this problem: %s", r.Instructions),
 				},
-				// Functions: []swarm.AgentFunction{trivyFunc, kubectlFunc, pythonFunc},
 			},
 		},
 	}
@@ -781,7 +778,6 @@ func (r *ReActFlow) ThinkAboutStep(ctx context.Context, currentStep *StepDetail)
 		Name:     "think",
 		Model:    r.Model,
 		MaxTurns: 30,
-		Verbose:  r.Verbose,
 		Steps: []swarm.SimpleFlowStep{
 			{
 				Name:         "think-step",
@@ -791,7 +787,6 @@ func (r *ReActFlow) ThinkAboutStep(ctx context.Context, currentStep *StepDetail)
 						r.Instructions, string(currentReactActionJSON), r.PlanTracker.CurrentStep),
 					"chatHistory": r.ChatHistory,
 				},
-				// Functions: []swarm.AgentFunction{trivyFunc, kubectlFunc, pythonFunc},
 			},
 		},
 	}
@@ -904,7 +899,6 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 		Name:     "tool-call",
 		Model:    r.Model,
 		MaxTurns: 30,
-		Verbose:  r.Verbose,
 		Steps: []swarm.SimpleFlowStep{
 			{
 				Name:         "tool-call-step",
@@ -914,7 +908,6 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 						r.Instructions, string(observationActionJSON)),
 					"chatHistory": r.ChatHistory,
 				},
-				// Functions: []swarm.AgentFunction{trivyFunc, kubectlFunc, pythonFunc},
 			},
 		},
 	}
