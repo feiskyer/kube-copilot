@@ -21,8 +21,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/feiskyer/kube-copilot/pkg/tools"
-	kubetools "github.com/feiskyer/kube-copilot/pkg/tools"
-	"github.com/feiskyer/kube-copilot/pkg/utils"
 	"github.com/feiskyer/kube-copilot/pkg/workflows"
 	"github.com/spf13/cobra"
 )
@@ -30,7 +28,7 @@ import (
 var instructions string
 
 func init() {
-	tools.CopilotTools["trivy"] = kubetools.Trivy
+	tools.CopilotTools["trivy"] = tools.Trivy
 
 	executeCmd.PersistentFlags().StringVarP(&instructions, "instructions", "", "", "instructions to execute")
 	executeCmd.MarkFlagRequired("instructions")
@@ -48,20 +46,27 @@ var executeCmd = &cobra.Command{
 			return
 		}
 
-		response, err := workflows.ReActFlow(model, instructions, verbose)
+		flow, err := workflows.NewReActFlow(model, instructions, verbose, maxIterations)
 		if err != nil {
 			color.Red(err.Error())
 			return
 		}
 
-		instructions := fmt.Sprintf("Rewrite the text in a concise Markdown format (only output the Markdown response and do not try to answner any questions in text). Embed the format in your responese if output format is asked in user input '%s'. Here is the text to rewrite: %s", instructions, response)
-		result, err := workflows.SimpleFlow(model, "", instructions, verbose)
+		response, err := flow.Run()
 		if err != nil {
 			color.Red(err.Error())
-			fmt.Println(response)
 			return
 		}
+		fmt.Println(response)
 
-		utils.RenderMarkdown(result)
+		// instructions := fmt.Sprintf("Rewrite the text in a concise Markdown format (only output the Markdown response and do not try to answner any questions in text). Embed the format in your responese if output format is asked in user input '%s'.\n\nHere is the text to rewrite: %s", instructions, response)
+		// result, err := workflows.SimpleFlow(model, "", instructions, verbose)
+		// if err != nil {
+		// 	color.Red(err.Error())
+		// 	fmt.Println(response)
+		// 	return
+		// }
+
+		// utils.RenderMarkdown(result)
 	},
 }

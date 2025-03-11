@@ -108,7 +108,7 @@ Global Flags:
   -c, --count-tokens         Print tokens count
   -x, --max-iterations int   Max iterations for the agent running (default 10)
   -t, --max-tokens int       Max tokens for the GPT model (default 2048)
-  -m, --model string         OpenAI model to use (default "gpt-4")
+  -m, --model string         OpenAI model to use (default "gpt-4o")
   -v, --verbose              Enable verbose output
 ```
 </details>
@@ -133,7 +133,7 @@ Global Flags:
   -c, --count-tokens         Print tokens count
   -x, --max-iterations int   Max iterations for the agent running (default 10)
   -t, --max-tokens int       Max tokens for the GPT model (default 2048)
-  -m, --model string         OpenAI model to use (default "gpt-4")
+  -m, --model string         OpenAI model to use (default "gpt-4o")
   -v, --verbose              Enable verbose output
 ```
 </details>
@@ -159,7 +159,7 @@ Global Flags:
   -c, --count-tokens         Print tokens count
   -x, --max-iterations int   Max iterations for the agent running (default 10)
   -t, --max-tokens int       Max tokens for the GPT model (default 2048)
-  -m, --model string         OpenAI model to use (default "gpt-4")
+  -m, --model string         OpenAI model to use (default "gpt-4o")
   -v, --verbose              Enable verbose output
 ```
 </details>
@@ -184,7 +184,7 @@ Global Flags:
   -c, --count-tokens         Print tokens count
   -x, --max-iterations int   Max iterations for the agent running (default 10)
   -t, --max-tokens int       Max tokens for the GPT model (default 2048)
-  -m, --model string         OpenAI model to use (default "gpt-4")
+  -m, --model string         OpenAI model to use (default "gpt-4o")
   -v, --verbose              Enable verbose output
 ```
 </details>
@@ -210,7 +210,7 @@ Global Flags:
   -c, --count-tokens         Print tokens count
   -x, --max-iterations int   Max iterations for the agent running (default 10)
   -t, --max-tokens int       Max tokens for the GPT model (default 2048)
-  -m, --model string         OpenAI model to use (default "gpt-4")
+  -m, --model string         OpenAI model to use (default "gpt-4o")
   -v, --verbose              Enable verbose output
 ```
 </details>

@@ -39,11 +39,11 @@ var (
 
 // init initializes the command line flags
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&model, "model", "m", "gpt-4", "OpenAI model to use")
+	rootCmd.PersistentFlags().StringVarP(&model, "model", "m", "gpt-4o", "OpenAI model to use")
 	rootCmd.PersistentFlags().IntVarP(&maxTokens, "max-tokens", "t", 2048, "Max tokens for the GPT model")
 	rootCmd.PersistentFlags().BoolVarP(&countTokens, "count-tokens", "c", false, "Print tokens count")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
-	rootCmd.PersistentFlags().IntVarP(&maxIterations, "max-iterations", "x", 10, "Max iterations for the agent running")
+	rootCmd.PersistentFlags().IntVarP(&maxIterations, "max-iterations", "x", 30, "Max iterations for the agent running")
 
 	rootCmd.AddCommand(analyzeCmd)
 	rootCmd.AddCommand(auditCmd)
