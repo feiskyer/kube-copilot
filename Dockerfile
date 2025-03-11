@@ -25,9 +25,10 @@ FROM alpine
 WORKDIR /
 
 RUN apk add --update curl wget python3 py3-pip curl && \
+    pip install --break-system-packages kubernetes && \
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
     chmod +x kubectl && mv kubectl /usr/local/bin && \
-    curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.48.1 && \
+    curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.60.0 && \
     rm -rf /var/cache/apk/* && \
     mkdir -p /etc/kube-copilot
 
