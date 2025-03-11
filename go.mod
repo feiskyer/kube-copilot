@@ -5,7 +5,7 @@ go 1.24
 require (
 	github.com/charmbracelet/glamour v0.8.0
 	github.com/fatih/color v1.18.0
-	github.com/feiskyer/swarm-go v0.2.0
+	github.com/feiskyer/swarm-go v0.2.1
 	github.com/pkoukk/tiktoken-go v0.1.7
 	github.com/sashabaranov/go-openai v1.38.0
 	github.com/spf13/cobra v1.9.1
@@ -14,7 +14,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.32.2
 	k8s.io/client-go v0.32.2
-) 
+)
 
 require (
 	cloud.google.com/go/auth v0.15.0 // indirect
