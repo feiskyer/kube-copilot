@@ -24,9 +24,54 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/feiskyer/kube-copilot/pkg/llms"
 	"github.com/feiskyer/kube-copilot/pkg/tools"
 	"github.com/feiskyer/swarm-go"
 )
+
+const outputPrompt = `
+# Output Format
+
+Your final output must strictly adhere to this JSON structure:
+
+{
+  "question": "<input question>",
+  "thought": "<your detailed thought process>",
+  "steps": [
+    {
+      "name": "<descriptive name of step 1>",
+      "description": "<detailed description of what this step will do>",
+	  "action": {
+		"name": "<tool to call for current step: kubectl, python, or trivy>",
+		"input": "<exact command or script with all required context>"
+		},
+       "status": "<one of: pending, in_progress, completed, failed>",
+	  "observation": "<result from the tool call of the action, to be filled in after action execution>",
+    },
+    {
+      "name": "<descriptive name of step 2>",
+      "description": "<detailed description of what this step will do>",
+	  "action": {
+		"name": "<tool to call for current step: kubectl, python, or trivy>",
+		"input": "<exact command or script with all required context>"
+		},
+	  "observation": "<result from the tool call of the action, to be filled in after action execution>",
+      "status": "<status of this step>"
+    },
+    ...more steps...
+  ],
+  "current_step_index": <index of the current step being executed, zero-based>,
+  "final_answer": "<your final findings; only fill this when no further actions are required>"
+}
+
+# Important:
+- Always use function calls via the 'action' field for tool invocations. NEVER output plain text instructions for the user to run a command manually.
+- Ensure that the chain-of-thought (fields 'thought' and 'steps') is clear and concise, leading logically to the tool call if needed.
+- The final answer should only be provided when all necessary tool invocations have been completed and the issue is fully resolved.
+- The 'steps' array should contain ALL steps needed to solve the problem, with appropriate status updates as you progress (simulated data shouldn't be used here).
+- NEVER remove steps from the 'steps' array once added, only update their status.
+- Initial step statuses should be "pending", change to "in_progress" when starting a step, and then "completed" or "failed" when done.
+`
 
 const planPrompt = `
 You are an expert Planning Agent tasked with solving Kubernetes and cloud-native networking problems efficiently through structured plans.
@@ -43,104 +88,29 @@ Your job is to:
 
 # Available Tools
 
-- kubectl: Execute Kubernetes commands. Use options like '--sort-by=memory' or '--sort-by=cpu' with 'kubectl top' when necessary and user '--all-namespaces' for cluster-wide information. Input: a single kubectl command (multiple commands are not supported). Output: the command result.
+- kubectl: Execute Kubernetes commands. DO NOT use interactive commands (e.g. kubectl edit or kubectl logs -f). Use options like '--sort-by=memory' or '--sort-by=cpu' with 'kubectl top' when necessary and user '--all-namespaces' for cluster-wide information. Input: a single kubectl command (multiple commands are not supported). Output: the command result.
 - python: Run Python scripts that leverage the Kubernetes Python SDK client. Ensure that output is generated using 'print(...)'. Input: a Python script (multiple scripts are not supported). Output: the stdout and stderr.
 - trivy: Scan container images for vulnerabilities using the 'trivy image' command. Input: an image name. Output: a report of vulnerabilities.
-
-# Output Format
-
-Your final output must strictly adhere to this JSON structure:
-
-{
-  "question": "<input question>",
-  "thought": "<your detailed thought process>",
-  "steps": [
-    {
-      "name": "<descriptive name of step 1>",
-      "description": "<detailed description of what this step will do>",
-	  "action": {
-		"name": "<tool to call for current step: kubectl, python, or trivy>",
-		"input": "<exact command or script with all required context>"
-		},
-       "status": "<one of: pending, in_progress, completed, failed>",
-	  "observation": "<result from the tool call of the action, to be filled in after action execution>",
-    },
-    {
-      "name": "<descriptive name of step 2>",
-      "description": "<detailed description of what this step will do>",
-	  "action": {
-		"name": "<tool to call for current step: kubectl, python, or trivy>",
-		"input": "<exact command or script with all required context>"
-		},
-	  "observation": "<result from the tool call of the action, to be filled in after action execution>",
-      "status": "<status of this step>"
-    },
-    ...more steps...
-  ],
-  "current_step_index": <index of the current step being executed, zero-based>,
-  "final_answer": "<your final findings; only fill this when no further actions are required>"
-}
-
-# Important:
-- Always use function calls via the 'action' field for tool invocations. NEVER output plain text instructions for the user to run a command manually.
-- Ensure that the chain-of-thought (fields 'thought' and 'steps') is clear and concise, leading logically to the tool call if needed.
-- The final answer should only be provided when all necessary tool invocations have been completed and the issue is fully resolved.
-- The 'steps' array should contain ALL steps needed to solve the problem, with appropriate status updates as you progress.
-- NEVER remove steps from the 'steps' array once added, only update their status.
-- Initial step statuses should be "pending", change to "in_progress" when starting a step, and then "completed" or "failed" when done.
-`
+` + outputPrompt
 
 const nextStepPrompt = `You are an expert Planning Agent tasked with solving Kubernetes and cloud-native networking problems efficiently through structured plans.
 Your job is to:
 
 1. Review the tool execution results and the current plan.
-2. Determine if the plan is sufficient, or if it needs refinement.
-3. Choose the most efficient path forward and update the plan accordingly (e.g. update the action inputs for next step or add new steps).
-4. If the task is complete, set 'final_answer' right away.
+2. Fix the tool parameters if the tool call failed.
+3. Determine if the plan is sufficient, or if it needs refinement.
+4. Choose the most efficient path forward and update the plan accordingly (e.g. update the action inputs for next step or add new steps).
+5. If the task is complete, set 'final_answer' right away.
 
 Be concise in your reasoning, then select the appropriate tool or action.
-
-# Output Format
-
-Your final output must strictly adhere to this JSON structure:
-
-{
-  "question": "<input question>",
-  "thought": "<your detailed thought process>",
-  "steps": [
-    {
-      "name": "<descriptive name of step 1>",
-      "description": "<detailed description of what this step will do>",
-	  "action": {
-		"name": "<tool to call for current step: kubectl, python, or trivy>",
-		"input": "<exact command or script with all required context>"
-		},
-       "status": "<one of: pending, in_progress, completed, failed>",
-	  "observation": "<result from the tool call of the action, to be filled in after action execution>",
-    },
-    {
-      "name": "<descriptive name of step 2>",
-      "description": "<detailed description of what this step will do>",
-	  "action": {
-		"name": "<tool to call for current step: kubectl, python, or trivy>",
-		"input": "<exact command or script with all required context>"
-		},
-	  "observation": "<result from the tool call of the action, to be filled in after action execution>",
-      "status": "<status of this step>"
-    },
-    ...more steps...
-  ],
-  "current_step_index": <index of the current step being executed, zero-based>,
-  "final_answer": "<your final findings; only fill this when no further actions are required>"
-}
-`
+` + outputPrompt
 
 const reactPrompt = `As a technical expert in Kubernetes and cloud-native networking, you are required to help user to resolve their problem using a detailed chain-of-thought methodology.
 Your responses must follow a strict JSON format and simulate tool execution via function calls without instructing the user to manually run any commands.
 
 # Available Tools
 
-- kubectl: Execute Kubernetes commands. Use options like '--sort-by=memory' or '--sort-by=cpu' with 'kubectl top' when necessary and user '--all-namespaces' for cluster-wide information. Input: a single kubectl command (multiple commands are not supported). Output: the command result.
+- kubectl: Execute Kubernetes commands. DO NOT use interactive commands (e.g. kubectl edit or kubectl logs -f). Use options like '--sort-by=memory' or '--sort-by=cpu' with 'kubectl top' when necessary and user '--all-namespaces' for cluster-wide information. Input: a single kubectl command (multiple commands are not supported). Output: the command result.
 - python: Run Python scripts that leverage the Kubernetes Python SDK client. Ensure that output is generated using 'print(...)'. Input: a Python script (multiple scripts are not supported). Output: the stdout and stderr.
 - trivy: Scan container images for vulnerabilities using the 'trivy image' command. Input: an image name. Output: a report of vulnerabilities.
 
@@ -156,51 +126,7 @@ Your responses must follow a strict JSON format and simulate tool execution via 
 6. Do not set the 'final_answer' field when a tool call is pending; only set 'final_answer' when no further tool calls are required.
 7. Maintain a clear and concise chain-of-thought in the 'thought' field. Include a detailed, step-by-step process in the 'steps' field.
 8. Your entire response must be a valid JSON object with exactly the following keys: 'question', 'thought', 'steps', 'current_step_index', 'action', 'observation', and 'final_answer'. Do not include any additional text or markdown formatting.
-
-# Output Format
-
-Your final output must strictly adhere to this JSON structure:
-
-{
-  "question": "<input question>",
-  "thought": "<your detailed thought process>",
-  "steps": [
-    {
-      "name": "<descriptive name of step 1>",
-      "description": "<detailed description of what this step will do>",
-	  "action": {
-		"name": "<tool to call for current step: kubectl, python, or trivy>",
-		"input": "<exact command or script with all required context>"
-		},
-       "status": "<one of: pending, in_progress, completed, failed>",
-	  "observation": "<result from the tool call of the action, to be filled in after action execution>",
-    },
-    {
-      "name": "<descriptive name of step 2>",
-      "description": "<detailed description of what this step will do>",
-	  "action": {
-		"name": "<tool to call for current step: kubectl, python, or trivy>",
-		"input": "<exact command or script with all required context>"
-		},
-	  "observation": "<result from the tool call of the action, to be filled in after action execution>",
-      "status": "<status of this step>"
-    },
-    ...more steps...
-  ],
-  "current_step_index": <index of the current step being executed, zero-based>,
-  "final_answer": "<your final findings; only fill this when no further actions are required>"
-}
-
-# Important:
-- Always use function calls via the 'action' field for tool invocations. NEVER output plain text instructions for the user to run a command manually.
-- Ensure that the chain-of-thought (fields 'thought' and 'steps') is clear and concise, leading logically to the tool call if needed.
-- The final answer should only be provided when all necessary tool invocations have been completed and the issue is fully resolved.
-- The 'steps' array should contain ALL steps needed to solve the problem, with appropriate status updates as you progress.
-- NEVER remove steps from the 'steps' array once added, only update their status.
-- Initial step statuses should be "pending", change to "in_progress" when starting a step, and then "completed" or "failed" when done.
-
-Follow these instructions strictly to ensure a seamless, automated diagnostic and troubleshooting process.
-`
+` + outputPrompt
 
 // ReactAction is the JSON format for the react action.
 type ReactAction struct {
@@ -323,44 +249,86 @@ func (pt *PlanTracker) GetCurrentStep() *StepDetail {
 // MoveToNextStep moves to the next step
 func (pt *PlanTracker) MoveToNextStep() bool {
 	// If we're already at the last step, we can't move forward
-	if pt.CurrentStep >= len(pt.Steps)-1 {
+	if pt.CurrentStep >= len(pt.Steps)-1 && len(pt.Steps) > 0 {
+		// Just mark the current (last) step as completed if not already failed
+		if pt.Steps[pt.CurrentStep].Status != "failed" {
+			pt.Steps[pt.CurrentStep].Status = "completed"
+		}
 		return false
 	}
 
+	// Track the original step index before moving
+	originalStep := pt.CurrentStep
+
 	// Mark the current step as completed if it's not already marked as failed
-	if pt.Steps[pt.CurrentStep].Status != "failed" {
-		pt.Steps[pt.CurrentStep].Status = "completed"
+	// and only if we have steps (avoid index out of range)
+	if len(pt.Steps) > 0 && originalStep >= 0 && originalStep < len(pt.Steps) {
+		if pt.Steps[originalStep].Status != "failed" {
+			pt.Steps[originalStep].Status = "completed"
+		}
 	}
 
-	// Find the next available step that isn't already completed or failed
-	for i := pt.CurrentStep + 1; i < len(pt.Steps); i++ {
+	// First try to find the next pending step
+	foundNextStep := false
+
+	// Look for pending steps after the current step first
+	for i := originalStep + 1; i < len(pt.Steps); i++ {
 		// If step is pending, move to it
 		if pt.Steps[i].Status == "pending" {
 			pt.CurrentStep = i
 			pt.Steps[i].Status = "in_progress"
-			return true
+			foundNextStep = true
+			break
 		}
 	}
 
-	// If no pending steps found, consider moving to first incomplete step
-	// This handles cases where we might need to retry a step or restructure the plan
-	for i := 0; i < len(pt.Steps); i++ {
-		if i != pt.CurrentStep && pt.Steps[i].Status != "completed" && pt.Steps[i].Status != "failed" {
-			pt.CurrentStep = i
-			pt.Steps[i].Status = "in_progress"
-			return true
+	// If no pending steps found after current, check from beginning up to current
+	if !foundNextStep {
+		for i := 0; i < originalStep; i++ {
+			if pt.Steps[i].Status == "pending" {
+				pt.CurrentStep = i
+				pt.Steps[i].Status = "in_progress"
+				foundNextStep = true
+				break
+			}
 		}
 	}
 
-	// If we couldn't find any valid next step, just move to the next one
-	// as a fallback (this preserves original behavior)
-	pt.CurrentStep++
-	if pt.CurrentStep < len(pt.Steps) {
-		pt.Steps[pt.CurrentStep].Status = "in_progress"
-		return true
+	// If still no pending steps, look for in_progress steps that aren't the current one
+	if !foundNextStep {
+		for i := 0; i < len(pt.Steps); i++ {
+			if i != originalStep && pt.Steps[i].Status == "in_progress" {
+				pt.CurrentStep = i
+				foundNextStep = true
+				break
+			}
+		}
 	}
 
-	return false
+	// If we still couldn't find a pending or in_progress step, take one of two actions:
+	if !foundNextStep {
+		// If the original step was valid and we were simply moving to the next step in sequence,
+		// follow the sequence
+		if originalStep >= 0 && originalStep < len(pt.Steps)-1 {
+			pt.CurrentStep = originalStep + 1
+			// Only mark as in_progress if it's not already completed or failed
+			if pt.Steps[pt.CurrentStep].Status != "completed" && pt.Steps[pt.CurrentStep].Status != "failed" {
+				pt.Steps[pt.CurrentStep].Status = "in_progress"
+			}
+			return true
+		} else {
+			// If we had an invalid original step or were already at the end,
+			// set to the last step in the plan
+			if len(pt.Steps) > 0 {
+				pt.CurrentStep = len(pt.Steps) - 1
+			} else {
+				pt.CurrentStep = 0 // Handle empty step list
+			}
+			return false
+		}
+	}
+
+	return true
 }
 
 // IsComplete returns true if all steps are completed
@@ -414,10 +382,19 @@ func (pt *PlanTracker) ParsePlanFromReactAction(reactAction *ReactAction) error 
 	steps := []StepDetail{}
 
 	for _, step := range reactAction.Steps {
+		// Ensure status is set to a valid value
+		status := step.Status
+		if status == "" {
+			status = "pending"
+		}
+
+		// Copy step with proper status
 		steps = append(steps, StepDetail{
 			Name:        step.Name,
 			Description: step.Description,
-			Status:      step.Status,
+			Status:      status,
+			Action:      step.Action,
+			Observation: step.Observation,
 		})
 	}
 
@@ -431,6 +408,22 @@ func (pt *PlanTracker) ParsePlanFromReactAction(reactAction *ReactAction) error 
 	// If current step index is specified and valid, use it
 	if reactAction.CurrentStepIndex >= 0 && reactAction.CurrentStepIndex < len(steps) {
 		pt.CurrentStep = reactAction.CurrentStepIndex
+		// Make sure the current step is marked as in_progress
+		if pt.Steps[pt.CurrentStep].Status == "pending" {
+			pt.Steps[pt.CurrentStep].Status = "in_progress"
+		}
+	} else {
+		// Default to starting at first step
+		pt.CurrentStep = 0
+		// Mark first step as in_progress
+		if len(pt.Steps) > 0 && pt.Steps[0].Status == "pending" {
+			pt.Steps[0].Status = "in_progress"
+		}
+	}
+
+	// Store final answer if provided
+	if reactAction.FinalAnswer != "" {
+		pt.FinalAnswer = reactAction.FinalAnswer
 	}
 
 	return nil
@@ -442,18 +435,99 @@ func (pt *PlanTracker) SyncStepsWithReactAction(reactAction *ReactAction) {
 		return
 	}
 
-	// Update the plan if plan steps updated in reactAction
-	for i, step := range reactAction.Steps {
-		if step.Status == "" {
-			step.Status = "pending"
-		}
+	// First, ensure our step arrays are of the same length
+	// If reactAction has more steps, copy them to our tracker
+	for i := len(pt.Steps); i < len(reactAction.Steps); i++ {
+		pt.Steps = append(pt.Steps, reactAction.Steps[i])
+	}
 
+	// Record the state of steps before updating
+	completedSteps := make(map[int]bool)
+	failedSteps := make(map[int]bool)
+	for i, step := range pt.Steps {
+		if step.Status == "completed" {
+			completedSteps[i] = true
+		} else if step.Status == "failed" {
+			failedSteps[i] = true
+		}
+	}
+
+	// Update existing steps - but preserve completion status
+	for i, step := range reactAction.Steps {
 		if i < len(pt.Steps) {
-			if pt.Steps[i].Status != "completed" && pt.Steps[i].Status != "failed" && step.Action.Name != "" {
-				pt.Steps[i].Action = step.Action
+			// Keep track of original status for comparison
+			originalStatus := pt.Steps[i].Status
+
+			// Don't override completed or failed status from our tracker
+			if completedSteps[i] || failedSteps[i] {
+				// Only copy additional information without changing status
+				if pt.Steps[i].Action.Name == "" && step.Action.Name != "" {
+					pt.Steps[i].Action = step.Action
+				}
+
+				if pt.Steps[i].Description == "" && step.Description != "" {
+					pt.Steps[i].Description = step.Description
+				}
+
+				if pt.Steps[i].Name == "" && step.Name != "" {
+					pt.Steps[i].Name = step.Name
+				}
+			} else {
+				// For steps that aren't completed or failed, sync all data
+				pt.Steps[i].Name = step.Name
+				pt.Steps[i].Description = step.Description
+
+				// Only update action if it has content
+				if step.Action.Name != "" {
+					pt.Steps[i].Action = step.Action
+				}
+
+				// Only update status if it's not empty and would be a valid transition
+				if step.Status != "" {
+					// Don't allow pending→completed without going through in_progress
+					if !(originalStatus == "pending" && step.Status == "completed") {
+						pt.Steps[i].Status = step.Status
+					}
+				}
+
+				// Only update observation if not empty
+				if step.Observation != "" {
+					pt.Steps[i].Observation = step.Observation
+				}
+			}
+		}
+	}
+
+	// Sync current step index if it's within bounds
+	if reactAction.CurrentStepIndex >= 0 && reactAction.CurrentStepIndex < len(pt.Steps) {
+		// We don't want to move backward from a completed step to an earlier step
+		// UNLESS that earlier step still needs execution (e.g., has a new action)
+		shouldUpdateCurrentStep := false
+
+		// Always update if moving forward
+		if reactAction.CurrentStepIndex > pt.CurrentStep {
+			shouldUpdateCurrentStep = true
+		} else if reactAction.CurrentStepIndex < pt.CurrentStep {
+			// Only move backwards if current step is completed/failed AND
+			// the target step is not completed/failed AND has an action
+			if (pt.Steps[pt.CurrentStep].Status == "completed" ||
+				pt.Steps[pt.CurrentStep].Status == "failed") &&
+				(pt.Steps[reactAction.CurrentStepIndex].Status != "completed" &&
+					pt.Steps[reactAction.CurrentStepIndex].Status != "failed") &&
+				pt.Steps[reactAction.CurrentStepIndex].Action.Name != "" {
+				shouldUpdateCurrentStep = true
 			}
 		} else {
-			pt.Steps = append(pt.Steps, step)
+			// Same step index, no update needed
+		}
+
+		if shouldUpdateCurrentStep {
+			pt.CurrentStep = reactAction.CurrentStepIndex
+
+			// Ensure the current step is marked as in_progress
+			if pt.Steps[pt.CurrentStep].Status == "pending" {
+				pt.Steps[pt.CurrentStep].Status = "in_progress"
+			}
 		}
 	}
 }
@@ -482,6 +556,7 @@ func NewReActFlow(model string, instructions string, verbose bool, maxIterations
 		Instructions:  instructions,
 		MaxIterations: maxIterations,
 		PlanTracker:   NewPlanTracker(),
+		Verbose:       verbose,
 		Client:        client,
 		ChatHistory:   nil,
 	}, nil
@@ -547,25 +622,36 @@ func (r *ReActFlow) Plan(ctx context.Context) error {
 	return r.ParsePlanResult(result)
 }
 
+func extractReactAction(text string, reactAction *ReactAction) error {
+	text = strings.TrimSpace(text)
+
+	// For responses with prefix ```json
+	if strings.HasPrefix(text, "```") {
+		text = strings.TrimPrefix(text, "```")
+		text = strings.TrimPrefix(text, "json")
+		text = strings.TrimSuffix(text, "```")
+	}
+
+	// For responses with prefix <think>
+	if strings.HasPrefix(text, "<think>") {
+		text = strings.Split(text, "</think>")[1]
+		text = strings.TrimSpace(text)
+	}
+
+	if err := json.Unmarshal([]byte(text), reactAction); err != nil {
+		return fmt.Errorf("failed to parse LLM response to ReactAction: %v", err)
+	}
+	return nil
+}
+
 // ParsePlanResult parses the planning phase result
 func (r *ReActFlow) ParsePlanResult(result string) error {
 	var reactAction ReactAction
-	if err := json.Unmarshal([]byte(result), &reactAction); err != nil {
+	if err := extractReactAction(result, &reactAction); err != nil {
 		if r.Verbose {
 			color.Red("Unable to parse response as JSON: %v\n", err)
 		}
 
-		// Attempt a more lenient parsing by handling different formats
-		// Check if result contains a plan section we can extract
-		planSection := extractPlanSection(result)
-		if planSection != "" {
-			err = r.PlanTracker.ParsePlan(planSection)
-			if err != nil && r.Verbose {
-				color.Red("Failed to parse extracted plan: %v\n", err)
-			}
-		}
-
-		// If we still don't have a valid plan, return an error
 		if !r.PlanTracker.HasValidPlan {
 			return fmt.Errorf("couldn't create a proper plan")
 		}
@@ -609,7 +695,7 @@ func (r *ReActFlow) ParsePlanResult(result string) error {
 // ExecutePlan runs the execution phase of the workflow
 func (r *ReActFlow) ExecutePlan(ctx context.Context) (string, error) {
 	// Make sure we have a valid plan
-	if r.PlanTracker.CurrentStep >= len(r.PlanTracker.Steps) || !r.PlanTracker.HasValidPlan {
+	if len(r.PlanTracker.Steps) == 0 || !r.PlanTracker.HasValidPlan {
 		return "", fmt.Errorf("no valid plan to execute")
 	}
 
@@ -619,6 +705,19 @@ func (r *ReActFlow) ExecutePlan(ctx context.Context) (string, error) {
 
 	// Keep track of iterations
 	iteration := 0
+
+	// Track step stability (detect oscillation)
+	previousStepIndices := make([]int, 3) // track last 3 steps to detect oscillation
+	for i := range previousStepIndices {
+		previousStepIndices[i] = -1 // initialize with invalid indices
+	}
+
+	// Initialize first step if needed
+	if r.PlanTracker.CurrentStep < 0 || r.PlanTracker.CurrentStep >= len(r.PlanTracker.Steps) {
+		r.PlanTracker.CurrentStep = 0
+		r.PlanTracker.Steps[0].Status = "in_progress"
+	}
+
 	for {
 		// Check if we've exceeded the maximum number of iterations
 		if iteration >= r.MaxIterations {
@@ -633,12 +732,83 @@ func (r *ReActFlow) ExecutePlan(ctx context.Context) (string, error) {
 			return "", fmt.Errorf("execution timed out after %s", r.PlanTracker.ExecutionTimeout)
 		}
 
-		// Check if the plan is complete
-		if r.PlanTracker.IsComplete() {
+		// Check for step oscillation (repeating between the same steps)
+		oscillationDetected := false
+		if iteration >= 3 {
+			// Shift previous indices
+			previousStepIndices[0] = previousStepIndices[1]
+			previousStepIndices[1] = previousStepIndices[2]
+			previousStepIndices[2] = r.PlanTracker.CurrentStep
+
+			// Check for A-B-A pattern
+			if previousStepIndices[0] == previousStepIndices[2] &&
+				previousStepIndices[0] != previousStepIndices[1] &&
+				previousStepIndices[0] != -1 {
+				oscillationDetected = true
+				if r.Verbose {
+					color.Red("Oscillation detected between steps %d and %d. Forcing forward progress.",
+						previousStepIndices[0]+1, previousStepIndices[1]+1)
+				}
+
+				// Force mark the current step as completed to break the cycle
+				r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "completed", "",
+					"Automatic completion to break oscillation")
+			}
+		} else {
+			// For early iterations, just record the step index
+			previousStepIndices[iteration] = r.PlanTracker.CurrentStep
+		}
+
+		// Check if the plan is complete - all steps must be completed or failed
+		isComplete := true
+		for i, step := range r.PlanTracker.Steps {
+			// If any step isn't completed or failed, the plan isn't complete
+			if step.Status != "completed" && step.Status != "failed" {
+				isComplete = false
+
+				// If we find a step with pending or in_progress status that comes before
+				// our current step, we should consider moving back to execute it
+				if i < r.PlanTracker.CurrentStep && !oscillationDetected {
+					// Only move back if we have reason to (it has an action)
+					if step.Action.Name != "" {
+						if r.Verbose {
+							color.Yellow("Found earlier step %d in %s state with action, moving back to execute it",
+								i+1, step.Status)
+						}
+						r.PlanTracker.CurrentStep = i
+						r.PlanTracker.Steps[i].Status = "in_progress"
+						break
+					}
+				}
+			}
+		}
+
+		if isComplete {
 			if r.Verbose {
-				color.Green("Plan execution complete\n")
+				color.Green("Plan execution complete - all steps are completed or failed\n")
 			}
 			break
+		}
+
+		// Validate current step index is within bounds
+		if r.PlanTracker.CurrentStep < 0 || r.PlanTracker.CurrentStep >= len(r.PlanTracker.Steps) {
+			if r.Verbose {
+				color.Red("Invalid current step index %d. Resetting to first incomplete step.",
+					r.PlanTracker.CurrentStep)
+			}
+
+			// Find the first non-completed step
+			for i, step := range r.PlanTracker.Steps {
+				if step.Status != "completed" && step.Status != "failed" {
+					r.PlanTracker.CurrentStep = i
+					break
+				}
+			}
+
+			// If all steps are complete/failed but we didn't detect it above, force to last step
+			if r.PlanTracker.CurrentStep < 0 || r.PlanTracker.CurrentStep >= len(r.PlanTracker.Steps) {
+				r.PlanTracker.CurrentStep = len(r.PlanTracker.Steps) - 1
+			}
 		}
 
 		// Get the current step
@@ -647,10 +817,14 @@ func (r *ReActFlow) ExecutePlan(ctx context.Context) (string, error) {
 			return "", fmt.Errorf("invalid current step")
 		}
 
-		// Mark the current step as in progress
-		currentStep.Status = "in_progress"
+		// Mark the current step as in progress if it's pending
+		if currentStep.Status == "pending" {
+			currentStep.Status = "in_progress"
+		}
+
 		if r.Verbose {
-			color.Blue("[step: %s] %s [%s]\n", currentStep.Name, currentStep.Description, currentStep.Status)
+			color.Blue("[Step %d: %s] %s [%s]\n", r.PlanTracker.CurrentStep+1,
+				currentStep.Name, currentStep.Description, currentStep.Status)
 		}
 
 		if err := r.ExecuteStep(execCtx, iteration, currentStep); err != nil {
@@ -659,16 +833,35 @@ func (r *ReActFlow) ExecutePlan(ctx context.Context) (string, error) {
 			r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "failed", "", err.Error())
 			// If we can't move to the next step, we're done
 			if !r.PlanTracker.MoveToNextStep() {
+				if r.PlanTracker.FinalAnswer != "" {
+					// If we have a final answer, consider the plan successful anyway
+					break
+				}
 				return "", fmt.Errorf("plan execution failed: %v", err)
 			}
 		}
 
-		// Check if we have a final answer
-		if r.PlanTracker.FinalAnswer != "" && r.PlanTracker.IsComplete() {
-			if r.Verbose {
-				color.Green("Final answer: %s\n", r.PlanTracker.FinalAnswer)
+		// Check if we've reached our last step
+		if r.PlanTracker.CurrentStep >= len(r.PlanTracker.Steps)-1 {
+			// Only exit if the last step is completed or failed
+			lastStep := r.PlanTracker.Steps[len(r.PlanTracker.Steps)-1]
+			if lastStep.Status == "completed" || lastStep.Status == "failed" {
+				if r.PlanTracker.FinalAnswer != "" {
+					if r.Verbose {
+						color.Green("Final answer: %s\n", r.PlanTracker.FinalAnswer)
+					}
+				} else {
+					if r.Verbose {
+						color.Yellow("No final answer provided, but plan execution is complete.\n")
+					}
+				}
+				break
+			} else {
+				// Last step isn't completed yet, continue execution
+				if r.Verbose {
+					color.Yellow("At last step but status is %s, continuing execution", lastStep.Status)
+				}
 			}
-			break
 		}
 
 		// Increment iteration counter
@@ -681,10 +874,39 @@ func (r *ReActFlow) ExecutePlan(ctx context.Context) (string, error) {
 
 // ExecuteStep executes a single step in the plan
 func (r *ReActFlow) ExecuteStep(ctx context.Context, iteration int, currentStep *StepDetail) error {
-	// Update step status to in_progress
+	// Validate we have steps to execute
+	if len(r.PlanTracker.Steps) == 0 {
+		return fmt.Errorf("no steps in execution plan")
+	}
+
+	// Validate the current step index is within bounds
+	if r.PlanTracker.CurrentStep < 0 || r.PlanTracker.CurrentStep >= len(r.PlanTracker.Steps) {
+		return fmt.Errorf("current step index %d is out of bounds (0-%d)",
+			r.PlanTracker.CurrentStep, len(r.PlanTracker.Steps)-1)
+	}
+
+	// Get the current step from our tracker
+	trackerCurrentStep := r.PlanTracker.GetCurrentStep()
+	if trackerCurrentStep == nil {
+		return fmt.Errorf("invalid current step - nil returned from GetCurrentStep")
+	}
+
+	// If the passed step doesn't match our tracker's current step, log warning and use our tracker's step
+	if currentStep != trackerCurrentStep {
+		if r.Verbose {
+			color.Yellow("Step mismatch: passed step doesn't match tracker's current step. Using tracker's step.")
+		}
+		currentStep = trackerCurrentStep
+	}
+
+	// Ensure the current step is marked as in_progress
 	r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "in_progress", "", "")
+
 	if r.Verbose {
-		color.Blue("[step: %s] Executing step %d - %s\n", currentStep.Name, r.PlanTracker.CurrentStep+1, currentStep.Description)
+		color.Blue("[Step %d: %s] Executing step [current status: %s]\n",
+			r.PlanTracker.CurrentStep+1,
+			currentStep.Name,
+			currentStep.Status)
 		color.Cyan("Current plan status:\n%s\n", r.PlanTracker.GetPlanStatus())
 	}
 
@@ -692,13 +914,13 @@ func (r *ReActFlow) ExecuteStep(ctx context.Context, iteration int, currentStep 
 	stepResult, err := r.ThinkAboutStep(ctx, currentStep)
 	if err != nil {
 		if r.Verbose {
-			color.Red("Error executing step: %v\n", err)
+			color.Red("Error thinking about step %d: %v\n", r.PlanTracker.CurrentStep+1, err)
 		}
 		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "failed", "", fmt.Sprintf("Error: %v", err))
 
 		// Try to recover by moving to the next step
 		if !r.PlanTracker.MoveToNextStep() {
-			r.PlanTracker.LastError = fmt.Sprintf("Step execution failed: %v", err)
+			r.PlanTracker.LastError = fmt.Sprintf("Step thinking failed: %v", err)
 			return err
 		}
 		return nil
@@ -706,7 +928,7 @@ func (r *ReActFlow) ExecuteStep(ctx context.Context, iteration int, currentStep 
 
 	// Parse the step result
 	var stepAction ReactAction
-	if err = json.Unmarshal([]byte(stepResult), &stepAction); err != nil {
+	if err = extractReactAction(stepResult, &stepAction); err != nil {
 		if r.Verbose {
 			color.Red("Unable to parse step response as JSON: %v\n", err)
 		}
@@ -728,8 +950,29 @@ func (r *ReActFlow) ExecuteStep(ctx context.Context, iteration int, currentStep 
 		return nil
 	}
 
+	// Store original step index for comparison
+	originalStepIndex := r.PlanTracker.CurrentStep
+
 	// Sync steps from the model's response with our tracker
 	r.PlanTracker.SyncStepsWithReactAction(&stepAction)
+
+	// Verify we're still working on a valid step after sync
+	if r.PlanTracker.CurrentStep < 0 || r.PlanTracker.CurrentStep >= len(r.PlanTracker.Steps) {
+		if r.Verbose {
+			color.Red("After step sync, current step index %d is invalid. Resetting to original step %d.",
+				r.PlanTracker.CurrentStep, originalStepIndex)
+		}
+		// Reset to original step if current became invalid
+		r.PlanTracker.CurrentStep = originalStepIndex
+	}
+
+	// Check if the model and our tracker are on different steps now
+	if stepAction.CurrentStepIndex != r.PlanTracker.CurrentStep {
+		if r.Verbose {
+			color.Yellow("Step index drift after sync: model=%d, tracker=%d",
+				stepAction.CurrentStepIndex, r.PlanTracker.CurrentStep)
+		}
+	}
 
 	// Check if we have a final answer
 	if stepAction.FinalAnswer != "" {
@@ -741,15 +984,8 @@ func (r *ReActFlow) ExecuteStep(ctx context.Context, iteration int, currentStep 
 		// Mark current step as completed
 		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "completed", "", "Final answer provided")
 
-		// Mark all previous steps as completed
-		for i := 0; i < r.PlanTracker.CurrentStep; i++ {
-			if r.PlanTracker.Steps[i].Status != "failed" {
-				r.PlanTracker.Steps[i].Status = "completed"
-			}
-		}
-
 		// If this is the last step, we're done
-		if r.PlanTracker.CurrentStep == len(r.PlanTracker.Steps)-1 {
+		if r.PlanTracker.CurrentStep >= len(r.PlanTracker.Steps)-1 {
 			return nil
 		}
 
@@ -764,11 +1000,42 @@ func (r *ReActFlow) ExecuteStep(ctx context.Context, iteration int, currentStep 
 
 // ThinkAboutStep uses the LLM to think about how to execute the current step
 func (r *ReActFlow) ThinkAboutStep(ctx context.Context, currentStep *StepDetail) (string, error) {
+	// Validate our current step pointer and index
+	if currentStep == nil {
+		return "", fmt.Errorf("current step is nil")
+	}
+
+	// Validate the current step index is within bounds
+	if r.PlanTracker.CurrentStep < 0 || r.PlanTracker.CurrentStep >= len(r.PlanTracker.Steps) {
+		return "", fmt.Errorf("current step index %d is out of bounds (0-%d)",
+			r.PlanTracker.CurrentStep, len(r.PlanTracker.Steps)-1)
+	}
+
+	// Get the current step from our tracker (not the parameter passed in)
+	trackerCurrentStep := r.PlanTracker.GetCurrentStep()
+
+	// Double check that our pointer and tracker step are in sync
+	if currentStep != trackerCurrentStep {
+		if r.Verbose {
+			color.Yellow("Current step mismatch in ThinkAboutStep. Using tracker's step.")
+		}
+		currentStep = trackerCurrentStep
+	}
+
+	// Mark current step as in_progress if not already
+	if r.PlanTracker.Steps[r.PlanTracker.CurrentStep].Status == "pending" {
+		r.PlanTracker.Steps[r.PlanTracker.CurrentStep].Status = "in_progress"
+	}
+
+	// Prepare a deep copy of the steps to send to the LLM
+	stepsCopy := make([]StepDetail, len(r.PlanTracker.Steps))
+	copy(stepsCopy, r.PlanTracker.Steps)
+
 	// Prepare the current ReactAction with updated steps status
 	currentReactAction := ReactAction{
 		Question:         r.Instructions,
 		Thought:          "Executing the next step in the plan",
-		Steps:            r.PlanTracker.Steps,
+		Steps:            stepsCopy,
 		CurrentStepIndex: r.PlanTracker.CurrentStep,
 	}
 
@@ -797,16 +1064,20 @@ func (r *ReActFlow) ThinkAboutStep(ctx context.Context, currentStep *StepDetail)
 	// Create a context with timeout for this step
 	stepCtx, stepCancel := context.WithTimeout(ctx, 5*time.Minute)
 	if r.Verbose {
-		color.Blue("[step: %s] Running the step %s\n", currentStep.Name, currentStep.Description)
+		color.Blue("[Step %d: %s] Running the step %s [current status: %s]\n",
+			r.PlanTracker.CurrentStep+1,
+			currentStep.Name,
+			currentStep.Description,
+			r.PlanTracker.Steps[r.PlanTracker.CurrentStep].Status)
 	}
 
 	stepResult, stepChatHistory, err := stepFlow.Run(stepCtx, r.Client)
-	stepCancel() // Cancel the context regardless of result
+	stepCancel()
 
 	// Update chat history
 	r.ChatHistory = limitChatHistory(stepChatHistory, 20)
 	if r.Verbose && err == nil {
-		color.Cyan("[step: %s] Step result:\n%s\n\n", currentStep.Name, stepResult)
+		color.Cyan("[Step %d: %s] Step result:\n%s\n\n", r.PlanTracker.CurrentStep+1, currentStep.Name, stepResult)
 	}
 
 	return stepResult, err
@@ -814,20 +1085,70 @@ func (r *ReActFlow) ThinkAboutStep(ctx context.Context, currentStep *StepDetail)
 
 // ExecuteToolIfNeeded executes a tool if the current step requires it
 func (r *ReActFlow) ExecuteToolIfNeeded(ctx context.Context, stepAction *ReactAction) error {
-	// Check if we need to execute a tool
-	currentStepIndex := stepAction.CurrentStepIndex
-	if currentStepIndex < 0 || currentStepIndex >= len(stepAction.Steps) || stepAction.Steps[currentStepIndex].Action.Name == "" {
-		// No tool execution needed, mark step as completed
-		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "completed", "", "Step completed without tool execution")
+	// Ensure our internal step tracker and the stepAction's index are fully synchronized
+	if stepAction.CurrentStepIndex != r.PlanTracker.CurrentStep {
+		if r.Verbose {
+			color.Yellow("Step index mismatch: PlanTracker.CurrentStep=%d, stepAction.CurrentStepIndex=%d, syncing to PlanTracker's value",
+				r.PlanTracker.CurrentStep, stepAction.CurrentStepIndex)
+		}
+	}
 
-		// Move to next step
+	// Always use our plan tracker's current step as the source of truth
+	currentStepIndex := r.PlanTracker.CurrentStep
+
+	// Validate bounds for both tracking mechanisms
+	if currentStepIndex < 0 || currentStepIndex >= len(r.PlanTracker.Steps) {
+		return fmt.Errorf("invalid current step index: %d (out of bounds)", currentStepIndex)
+	}
+
+	// Check if we have a valid action to execute
+	actionExists := false
+	var actionName, actionInput string
+
+	// First check our plan tracker for action info
+	if currentStepIndex < len(r.PlanTracker.Steps) &&
+		r.PlanTracker.Steps[currentStepIndex].Action.Name != "" {
+		actionExists = true
+		actionName = r.PlanTracker.Steps[currentStepIndex].Action.Name
+		actionInput = r.PlanTracker.Steps[currentStepIndex].Action.Input
+	}
+
+	// If no action in our tracker, check if stepAction provides one
+	if !actionExists && currentStepIndex < len(stepAction.Steps) &&
+		stepAction.Steps[currentStepIndex].Action.Name != "" {
+		actionExists = true
+		actionName = stepAction.Steps[currentStepIndex].Action.Name
+		actionInput = stepAction.Steps[currentStepIndex].Action.Input
+
+		// Sync this action back to our plan tracker
+		r.PlanTracker.Steps[currentStepIndex].Action.Name = actionName
+		r.PlanTracker.Steps[currentStepIndex].Action.Input = actionInput
+	}
+
+	// If no tool execution needed, mark step as completed and move on
+	if !actionExists {
+		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "completed", "", "Step completed without tool execution")
 		r.PlanTracker.MoveToNextStep()
 		return nil
 	}
 
-	// Get current step action
-	currentStep := &stepAction.Steps[currentStepIndex]
-	observation := r.ExecuteTool(currentStep.Action.Name, currentStep.Action.Input)
+	// Execute the tool and get observation
+	observation := r.ExecuteTool(actionName, actionInput)
+
+	// Get the current step - initialize with a stub first
+	tempStep := StepDetail{
+		Name:        fmt.Sprintf("Step %d", currentStepIndex+1),
+		Description: fmt.Sprintf("Executing %s tool", actionName),
+		Status:      "in_progress",
+	}
+	tempStep.Action.Name = actionName
+	tempStep.Action.Input = actionInput
+
+	// Only try to use stepAction's step if the index is valid
+	currentStep := &tempStep
+	if currentStepIndex < len(stepAction.Steps) {
+		currentStep = &stepAction.Steps[currentStepIndex]
+	}
 
 	// Process the tool observation
 	return r.ProcessToolObservation(ctx, currentStep, observation)
@@ -868,12 +1189,12 @@ func (r *ReActFlow) ExecuteTool(toolName string, toolInput string) string {
 	case toolResult := <-toolResultCh:
 		observation = strings.TrimSpace(toolResult.result)
 		if toolResult.err != nil {
-			observation = fmt.Sprintf("Tool %s failed with error: %v. Considering refine the inputs for the tool.",
-				toolName, toolResult.err)
+			observation = fmt.Sprintf("Tool %s failed with result: %s error: %v. Considering refine the inputs for the tool.",
+				toolName, toolResult.result, toolResult.err)
 			r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "failed", toolName, observation)
 		} else {
 			// Update step with tool call info
-			r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "in_progress", toolName, "")
+			r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "in_progress", toolName, toolResult.result)
 		}
 	case <-time.After(r.PlanTracker.ExecutionTimeout):
 		observation = fmt.Sprintf("Tool %s execution timed out after %v seconds. Try with a simpler query or different tool.",
@@ -881,17 +1202,25 @@ func (r *ReActFlow) ExecuteTool(toolName string, toolInput string) string {
 		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "failed", toolName, observation)
 	}
 
+	if observation == "" {
+		observation = "Empty result returned from the tool."
+	}
 	if r.Verbose {
 		color.Cyan("Observation: %s\n\n", observation)
 	}
-
 	return observation
 }
 
 // ProcessToolObservation processes the observation from a tool execution
 func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *StepDetail, observation string) error {
-	// Update stepAction with the observation
+	// Truncate the prompt to the max tokens allowed by the model.
+	// This is required because the tool may have generated a long output.
+	observation = llms.ConstrictPrompt(observation, r.Model, 1000)
+	// Update the truncated observation
 	currentStep.Observation = observation
+
+	// Update our plan tracker with the observation
+	r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "in_progress", currentStep.Action.Name, observation)
 
 	// Create a new flow for processing the observation
 	observationActionJSON, _ := json.MarshalIndent(currentStep, "", "  ")
@@ -918,18 +1247,18 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 	// Run the observation processing
 	obsCtx, obsCancel := context.WithTimeout(ctx, 5*time.Minute)
 	if r.Verbose {
-		color.Blue("[step: %s] Processing tool observation\n", currentStep.Name)
+		color.Blue("[Step %d: %s] Processing tool observation\n", r.PlanTracker.CurrentStep+1, currentStep.Name)
 	}
 
 	observationResult, observationChatHistory, err := observationFlow.Run(obsCtx, r.Client)
-	obsCancel() // Cancel the context regardless of result
+	obsCancel()
 
 	if err != nil {
 		if r.Verbose {
 			color.Red("Error processing observation: %v\n", err)
 		}
 		// Mark step with the appropriate status based on tool execution
-		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, currentStep.Status, currentStep.Action.Name, observation)
+		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "failed", currentStep.Action.Name, observation)
 
 		// Try to move to the next step regardless of the error
 		r.PlanTracker.MoveToNextStep()
@@ -939,12 +1268,12 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 	// Update bounded chat history
 	r.ChatHistory = limitChatHistory(observationChatHistory, 20)
 	if r.Verbose {
-		color.Cyan("[step: %s] Observation processing response:\n%s\n\n", currentStep.Name, observationResult)
+		color.Cyan("[Step %d: %s] Observation processing response:\n%s\n\n", r.PlanTracker.CurrentStep+1, currentStep.Name, observationResult)
 	}
 
 	// Parse the observation result
 	var observationAction ReactAction
-	if err = json.Unmarshal([]byte(observationResult), &observationAction); err != nil {
+	if err = extractReactAction(observationResult, &observationAction); err != nil {
 		if r.Verbose {
 			color.Red("Unable to parse observation response as JSON: %v\n", err)
 		}
@@ -955,78 +1284,118 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 		}
 
 		// Mark step with the determined status and move on
-		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, currentStep.Status, currentStep.Action.Name, observation)
+		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "completed", currentStep.Action.Name, observation)
 		r.PlanTracker.MoveToNextStep()
 		return nil
 	}
 
-	// Sync steps from observation action with our tracker, but prevent marking multiple steps as in_progress
+	// Sync steps from observation action with our tracker
 	r.PlanTracker.SyncStepsWithReactAction(&observationAction)
 
-	// Ensure only one step is in_progress at a time
-	for i := range r.PlanTracker.Steps {
-		if i != r.PlanTracker.CurrentStep && r.PlanTracker.Steps[i].Status == "in_progress" {
-			r.PlanTracker.Steps[i].Status = "pending"
-		}
-	}
-
 	// Check if we have a final answer from observation processing
-	if observationAction.FinalAnswer != "" && r.PlanTracker.IsComplete() {
+	if observationAction.FinalAnswer != "" {
 		r.PlanTracker.FinalAnswer = observationAction.FinalAnswer
 		if r.Verbose {
 			color.Cyan("Final answer received from observation processing: %s\n", r.PlanTracker.FinalAnswer)
 		}
 
-		// Mark current step with the determined status
+		// Mark current step as completed
 		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "completed", currentStep.Action.Name, observation)
 
-		// If this is the last step, we're done
-		if r.PlanTracker.CurrentStep == len(r.PlanTracker.Steps)-1 {
-			return nil
-		}
-
-		// Move to next step
+		// Even if we have a final answer, we should still move to the next step
+		// if we're not at the last step
 		r.PlanTracker.MoveToNextStep()
 		return nil
 	}
 
-	// Check if we need another action from observationAction's current step
+	// Store the current step before any changes for comparison
+	originalStepIndex := r.PlanTracker.CurrentStep
+
+	// Get the observation action's current step index
 	observationStepIndex := observationAction.CurrentStepIndex
-	if observationStepIndex >= 0 && observationStepIndex < len(observationAction.Steps) &&
+
+	// First verify the observation step index is valid
+	if observationStepIndex < 0 || observationStepIndex >= len(observationAction.Steps) {
+		if r.Verbose {
+			color.Yellow("Observation action has invalid step index %d. Using our current step %d instead.",
+				observationStepIndex, r.PlanTracker.CurrentStep)
+		}
+		observationStepIndex = r.PlanTracker.CurrentStep
+	}
+
+	// Check if the observation indicates we should run a different action for the current step
+	if observationStepIndex == originalStepIndex &&
 		observationAction.Steps[observationStepIndex].Action.Name != "" {
-		// If the current step should retry with a new action, don't mark it as completed yet
-		// But update its status in case it was marked as failed by the model
-		if observationStepIndex == r.PlanTracker.CurrentStep {
-			r.PlanTracker.Steps[r.PlanTracker.CurrentStep].Status = "in_progress"
-			return nil // Continue with the current step but with new action
+		// Update the current step with new action info but keep the same index
+		if r.Verbose {
+			color.Yellow("Updating current step %d with new action: %s",
+				originalStepIndex+1, observationAction.Steps[observationStepIndex].Action.Name)
+		}
+
+		r.PlanTracker.Steps[originalStepIndex].Action = observationAction.Steps[observationStepIndex].Action
+		r.PlanTracker.Steps[originalStepIndex].Status = "in_progress"
+		return nil // Continue with the same step but with a new action
+	}
+
+	// If model suggests a later step with an action, move there
+	if observationStepIndex > originalStepIndex {
+		// Check if that step has an action defined
+		if observationStepIndex < len(observationAction.Steps) &&
+			observationAction.Steps[observationStepIndex].Action.Name != "" {
+
+			// Mark current step as completed
+			r.PlanTracker.UpdateStepStatus(originalStepIndex, "completed", currentStep.Action.Name, observation)
+
+			// Make sure we're not stepping beyond our plan's steps
+			if observationStepIndex < len(r.PlanTracker.Steps) {
+				// Update the target step's action info before moving to it
+				r.PlanTracker.Steps[observationStepIndex].Action = observationAction.Steps[observationStepIndex].Action
+				r.PlanTracker.Steps[observationStepIndex].Status = "pending"
+
+				// Jump directly to that step
+				r.PlanTracker.CurrentStep = observationStepIndex
+
+				if r.Verbose {
+					color.Yellow("Jumping forward to step %d to execute action: %s",
+						observationStepIndex+1, r.PlanTracker.Steps[observationStepIndex].Action.Name)
+				}
+				return nil
+			}
 		}
 	}
 
-	// If we have a next step, mark current with the determined status and move on
-	r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "completed", currentStep.Action.Name, observation)
+	// Check all steps for any actions to execute
+	for i := 0; i < len(observationAction.Steps); i++ {
+		// Skip the current step we just processed
+		if i == originalStepIndex {
+			continue
+		}
+
+		// If we find a step with an action to execute, move to it
+		if observationAction.Steps[i].Action.Name != "" &&
+			i < len(r.PlanTracker.Steps) &&
+			(r.PlanTracker.Steps[i].Status == "pending" ||
+				r.PlanTracker.Steps[i].Status == "in_progress") {
+
+			// Mark current step as completed
+			r.PlanTracker.UpdateStepStatus(originalStepIndex, "completed", currentStep.Action.Name, observation)
+
+			// Update the target step's action and move to it
+			r.PlanTracker.Steps[i].Action = observationAction.Steps[i].Action
+			r.PlanTracker.CurrentStep = i
+
+			if r.Verbose {
+				color.Yellow("Moving to step %d to execute action: %s",
+					i+1, r.PlanTracker.Steps[i].Action.Name)
+			}
+			return nil
+		}
+	}
+
+	// Default case: mark current step as completed and move to next
+	r.PlanTracker.UpdateStepStatus(originalStepIndex, "completed", currentStep.Action.Name, observation)
 	r.PlanTracker.MoveToNextStep()
 	return nil
-}
-
-// extractPlanSection attempts to extract a plan section from unstructured text
-func extractPlanSection(text string) string {
-	// Look for common plan section indicators
-	planPatterns := []string{
-		`(?i)(?:^|\n)(?:plan|steps|procedure|approach)(?::|$).*?(?:\n\n|\z)`,
-		`(?i)(?:^|\n)(?:I will|Let me|Here's how|First|To solve this).*?(?:\n\n|\z)`,
-		`(?i)(?:^|\n)(?:\d+\.|Step \d+:).*?(?:\n\n|\z)`,
-	}
-
-	for _, pattern := range planPatterns {
-		re := regexp.MustCompile(pattern)
-		matches := re.FindString(text)
-		if matches != "" {
-			return matches
-		}
-	}
-
-	// If no plan section found, return the entire text as a fallback
-	return text
 }
 
 // extractAnswerFromText attempts to extract a final answer from unstructured text
@@ -1066,12 +1435,11 @@ func generateFinalSummary(pt *PlanTracker) string {
 
 	for i, step := range pt.Steps {
 		sb.WriteString(fmt.Sprintf("Step %d: %s [status: %s]\n", i+1, step.Description, step.Status))
-		if step.Observation != "" {
-			sb.WriteString(fmt.Sprintf("Observation: %s\n\n", step.Observation))
-		} else {
-			sb.WriteString("\n")
+		observation := step.Observation[:min(200, len(step.Observation))]
+		if len(step.Observation) > 200 {
+			observation += " <truncated>"
 		}
-
+		sb.WriteString(fmt.Sprintf("Observation: %q\n\n", observation))
 	}
 
 	return sb.String()
