@@ -30,8 +30,8 @@ var (
 )
 
 func init() {
-	auditCmd.PersistentFlags().StringVarP(&auditName, "name", "", "", "Pod name")
-	auditCmd.PersistentFlags().StringVarP(&auditNamespace, "namespace", "n", "default", "Pod namespace")
+	auditCmd.PersistentFlags().StringVarP(&auditName, "name", "n", "", "Pod name")
+	auditCmd.PersistentFlags().StringVarP(&auditNamespace, "namespace", "s", "default", "Pod namespace")
 	auditCmd.MarkFlagRequired("name")
 }
 

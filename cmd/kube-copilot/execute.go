@@ -30,7 +30,7 @@ var instructions string
 func init() {
 	tools.CopilotTools["trivy"] = tools.Trivy
 
-	executeCmd.PersistentFlags().StringVarP(&instructions, "instructions", "", "", "instructions to execute")
+	executeCmd.PersistentFlags().StringVarP(&instructions, "instructions", "i", "", "instructions to execute")
 	executeCmd.MarkFlagRequired("instructions")
 }
 

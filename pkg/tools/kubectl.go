@@ -16,6 +16,7 @@ limitations under the License.
 package tools
 
 import (
+	"errors"
 	"os/exec"
 	"strings"
 )
@@ -26,8 +27,11 @@ func Kubectl(command string) (string, error) {
 		command = strings.TrimSpace(strings.TrimPrefix(command, "kubectl"))
 	}
 
-	cmd := exec.Command("kubectl", strings.Split(command, " ")...)
+	if strings.HasPrefix(command, "edit") {
+		return "", errors.New("interactive command kubectl edit is not supported")
+	}
 
+	cmd := exec.Command("kubectl", strings.Split(command, " ")...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return strings.TrimSpace(string(output)), err

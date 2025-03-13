@@ -30,8 +30,8 @@ var analysisNamespace string
 var analysisResource string
 
 func init() {
-	analyzeCmd.PersistentFlags().StringVarP(&analysisName, "name", "", "", "Resource name")
-	analyzeCmd.PersistentFlags().StringVarP(&analysisNamespace, "namespace", "n", "default", "Resource namespace")
+	analyzeCmd.PersistentFlags().StringVarP(&analysisName, "name", "n", "", "Resource name")
+	analyzeCmd.PersistentFlags().StringVarP(&analysisNamespace, "namespace", "s", "default", "Resource namespace")
 	analyzeCmd.PersistentFlags().StringVarP(&analysisResource, "resource", "r", "pod", "Resource type")
 	analyzeCmd.MarkFlagRequired("name")
 }

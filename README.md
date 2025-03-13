@@ -83,6 +83,7 @@ For Ollama or other OpenAI compatible LLMs, set the following environment variab
 
 - `OPENAI_API_KEY=<your-api-key>`
 - `OPENAI_API_BASE='http://localhost:11434/v1'` (or your own base URL)
+
 </details>
 
 ## Key Features
@@ -100,8 +101,8 @@ Usage:
 
 Flags:
   -h, --help               help for analyze
-      --name string        Resource name
-  -n, --namespace string   Resource namespace (default "default")
+  -n, --name string        Resource name
+  -s, --namespace string   Resource namespace (default "default")
   -r, --resource string    Resource type (default "pod")
 
 Global Flags:
@@ -111,6 +112,7 @@ Global Flags:
   -m, --model string         OpenAI model to use (default "gpt-4o")
   -v, --verbose              Enable verbose output
 ```
+
 </details>
 
 <details>
@@ -126,8 +128,8 @@ Usage:
 
 Flags:
   -h, --help               help for audit
-      --name string        Pod name
-  -n, --namespace string   Pod namespace (default "default")
+  -n, --name string        Resource name
+  -s, --namespace string   Resource namespace (default "default")
 
 Global Flags:
   -c, --count-tokens         Print tokens count
@@ -136,6 +138,7 @@ Global Flags:
   -m, --model string         OpenAI model to use (default "gpt-4o")
   -v, --verbose              Enable verbose output
 ```
+
 </details>
 
 
@@ -152,8 +155,8 @@ Usage:
 
 Flags:
   -h, --help               help for diagnose
-      --name string        Pod name
-  -n, --namespace string   Pod namespace (default "default")
+  -n, --name string        Resource name
+  -s, --namespace string   Resource namespace (default "default")
 
 Global Flags:
   -c, --count-tokens         Print tokens count
@@ -162,6 +165,7 @@ Global Flags:
   -m, --model string         OpenAI model to use (default "gpt-4o")
   -v, --verbose              Enable verbose output
 ```
+
 </details>
 
 <details>
@@ -178,7 +182,7 @@ Usage:
 
 Flags:
   -h, --help                  help for execute
-      --instructions string   instructions to execute
+  -i, --instructions string   instructions to execute
 
 Global Flags:
   -c, --count-tokens         Print tokens count
@@ -187,6 +191,7 @@ Global Flags:
   -m, --model string         OpenAI model to use (default "gpt-4o")
   -v, --verbose              Enable verbose output
 ```
+
 </details>
 
 <details>
@@ -213,6 +218,7 @@ Global Flags:
   -m, --model string         OpenAI model to use (default "gpt-4o")
   -v, --verbose              Enable verbose output
 ```
+
 </details>
 
 ## Integrations

@@ -27,8 +27,8 @@ var diagnoseName string
 var diagnoseNamespace string
 
 func init() {
-	diagnoseCmd.PersistentFlags().StringVarP(&diagnoseName, "name", "", "", "Pod name")
-	diagnoseCmd.PersistentFlags().StringVarP(&diagnoseNamespace, "namespace", "n", "default", "Pod namespace")
+	diagnoseCmd.PersistentFlags().StringVarP(&diagnoseName, "name", "n", "", "Pod name")
+	diagnoseCmd.PersistentFlags().StringVarP(&diagnoseNamespace, "namespace", "s", "default", "Pod namespace")
 	diagnoseCmd.MarkFlagRequired("name")
 }
 

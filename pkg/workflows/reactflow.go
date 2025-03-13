@@ -29,105 +29,6 @@ import (
 	"github.com/feiskyer/swarm-go"
 )
 
-const outputPrompt = `
-# Output Format
-
-Your final output must strictly adhere to this JSON structure:
-
-{
-  "question": "<input question>",
-  "thought": "<your detailed thought process>",
-  "steps": [
-    {
-      "name": "<descriptive name of step 1>",
-      "description": "<detailed description of what this step will do>",
-	  "action": {
-		"name": "<tool to call for current step: kubectl, python, or trivy>",
-		"input": "<exact command or script with all required context>"
-		},
-       "status": "<one of: pending, in_progress, completed, failed>",
-	  "observation": "<result from the tool call of the action, to be filled in after action execution>",
-    },
-    {
-      "name": "<descriptive name of step 2>",
-      "description": "<detailed description of what this step will do>",
-	  "action": {
-		"name": "<tool to call for current step: kubectl, python, or trivy>",
-		"input": "<exact command or script with all required context>"
-		},
-	  "observation": "<result from the tool call of the action, to be filled in after action execution>",
-      "status": "<status of this step>"
-    },
-    ...more steps...
-  ],
-  "current_step_index": <index of the current step being executed, zero-based>,
-  "final_answer": "<your final findings; only fill this when no further actions are required>"
-}
-
-# Important:
-- Always use function calls via the 'action' field for tool invocations. NEVER output plain text instructions for the user to run a command manually.
-- Ensure that the chain-of-thought (fields 'thought' and 'steps') is clear and concise, leading logically to the tool call if needed.
-- The final answer should only be provided when all necessary tool invocations have been completed and the issue is fully resolved.
-- The 'steps' array should contain ALL steps needed to solve the problem, with appropriate status updates as you progress (simulated data shouldn't be used here).
-- NEVER remove steps from the 'steps' array once added, only update their status.
-- Initial step statuses should be "pending", change to "in_progress" when starting a step, and then "completed" or "failed" when done.
-`
-
-const planPrompt = `
-You are an expert Planning Agent tasked with solving Kubernetes and cloud-native networking problems efficiently through structured plans.
-Your job is to:
-
-1. Analyze the user's instruction and their intent carefully to understand the issue or goal.
-2. Create a clear and actionable plan to achieve the goal and user intent. Document this plan in the 'steps' field as a structured array.
-3. For any troubleshooting step that requires tool execution, include a function call by populating the 'action' field with:
-   - 'name': one of [kubectl, python, trivy].
-   - 'input': the exact command or script, including any required context (e.g., raw YAML, error logs, image name).
-4. Track progress and adapt plans when necessary
-5. Do not set the 'final_answer' field when a tool call is pending; only set 'final_answer' when no further tool calls are required.
-
-
-# Available Tools
-
-- kubectl: Execute Kubernetes commands. DO NOT use interactive commands (e.g. kubectl edit or kubectl logs -f). Use options like '--sort-by=memory' or '--sort-by=cpu' with 'kubectl top' when necessary and user '--all-namespaces' for cluster-wide information. Input: a single kubectl command (multiple commands are not supported). Output: the command result.
-- python: Run Python scripts that leverage the Kubernetes Python SDK client. Ensure that output is generated using 'print(...)'. Input: a Python script (multiple scripts are not supported). Output: the stdout and stderr.
-- trivy: Scan container images for vulnerabilities using the 'trivy image' command. Input: an image name. Output: a report of vulnerabilities.
-` + outputPrompt
-
-const nextStepPrompt = `You are an expert Planning Agent tasked with solving Kubernetes and cloud-native networking problems efficiently through structured plans.
-Your job is to:
-
-1. Review the tool execution results and the current plan.
-2. Fix the tool parameters if the tool call failed.
-3. Determine if the plan is sufficient, or if it needs refinement.
-4. Choose the most efficient path forward and update the plan accordingly (e.g. update the action inputs for next step or add new steps).
-5. If the task is complete, set 'final_answer' right away.
-
-Be concise in your reasoning, then select the appropriate tool or action.
-` + outputPrompt
-
-const reactPrompt = `As a technical expert in Kubernetes and cloud-native networking, you are required to help user to resolve their problem using a detailed chain-of-thought methodology.
-Your responses must follow a strict JSON format and simulate tool execution via function calls without instructing the user to manually run any commands.
-
-# Available Tools
-
-- kubectl: Execute Kubernetes commands. DO NOT use interactive commands (e.g. kubectl edit or kubectl logs -f). Use options like '--sort-by=memory' or '--sort-by=cpu' with 'kubectl top' when necessary and user '--all-namespaces' for cluster-wide information. Input: a single kubectl command (multiple commands are not supported). Output: the command result.
-- python: Run Python scripts that leverage the Kubernetes Python SDK client. Ensure that output is generated using 'print(...)'. Input: a Python script (multiple scripts are not supported). Output: the stdout and stderr.
-- trivy: Scan container images for vulnerabilities using the 'trivy image' command. Input: an image name. Output: a report of vulnerabilities.
-
-# Guidelines
-
-1. Analyze the user's instruction and their intent carefully to understand the issue or goal.
-2. Formulate a detailed, step-by-step plan to achieve the goal and user intent. Document this plan in the 'steps' field as a structured array.
-3. For any troubleshooting step that requires tool execution, include a function call by populating the 'action' field with:
-   - 'name': one of [kubectl, python, trivy].
-   - 'input': the exact command or script, including any required context (e.g., raw YAML, error logs, image name).
-4. DO NOT instruct the user to manually run any commands. All tool calls must be performed by the assistant through the 'action' field.
-5. After a tool is invoked, analyze its result (which will be provided in the 'observation' field) and update your chain-of-thought accordingly.
-6. Do not set the 'final_answer' field when a tool call is pending; only set 'final_answer' when no further tool calls are required.
-7. Maintain a clear and concise chain-of-thought in the 'thought' field. Include a detailed, step-by-step process in the 'steps' field.
-8. Your entire response must be a valid JSON object with exactly the following keys: 'question', 'thought', 'steps', 'current_step_index', 'action', 'observation', and 'final_answer'. Do not include any additional text or markdown formatting.
-` + outputPrompt
-
 // ReactAction is the JSON format for the react action.
 type ReactAction struct {
 	Question         string       `json:"question"`
@@ -341,6 +242,19 @@ func (pt *PlanTracker) IsComplete() bool {
 	return len(pt.Steps) > 0
 }
 
+func formatObservationOutputs(observation string) string {
+	if observation == "" {
+		return ""
+	}
+
+	lines := strings.Split(observation, "\n")
+	formattedLines := make([]string, len(lines))
+	for i, line := range lines {
+		formattedLines[i] = "   " + line
+	}
+	return strings.Join(formattedLines, "\n")
+}
+
 // GetPlanStatus returns a string representation of the plan status
 func (pt *PlanTracker) GetPlanStatus() string {
 	var sb strings.Builder
@@ -358,7 +272,8 @@ func (pt *PlanTracker) GetPlanStatus() string {
 
 		sb.WriteString(fmt.Sprintf("%s Step %d: %s [%s]\n", statusSymbol, i+1, step.Description, step.Status))
 		if step.Observation != "" {
-			sb.WriteString(fmt.Sprintf("   Observation: %s\n", strings.ReplaceAll(step.Observation, "\n", " ")))
+			formattedObservation := formatObservationOutputs(step.Observation)
+			sb.WriteString(fmt.Sprintf("   Observation:\n%s\n", formattedObservation))
 		}
 	}
 
@@ -906,7 +821,8 @@ func (r *ReActFlow) ExecuteStep(ctx context.Context, iteration int, currentStep 
 		color.Blue("[Step %d: %s] Executing step [current status: %s]\n",
 			r.PlanTracker.CurrentStep+1,
 			currentStep.Name,
-			currentStep.Status)
+			currentStep.Description,
+			r.PlanTracker.Steps[r.PlanTracker.CurrentStep].Status)
 		color.Cyan("Current plan status:\n%s\n", r.PlanTracker.GetPlanStatus())
 	}
 
@@ -1132,8 +1048,8 @@ func (r *ReActFlow) ExecuteToolIfNeeded(ctx context.Context, stepAction *ReactAc
 		return nil
 	}
 
-	// Execute the tool and get observation
-	observation := r.ExecuteTool(actionName, actionInput)
+	// Execute the tool and get tool response
+	toolResponse := r.ExecuteTool(actionName, actionInput)
 
 	// Get the current step - initialize with a stub first
 	tempStep := StepDetail{
@@ -1151,7 +1067,7 @@ func (r *ReActFlow) ExecuteToolIfNeeded(ctx context.Context, stepAction *ReactAc
 	}
 
 	// Process the tool observation
-	return r.ProcessToolObservation(ctx, currentStep, observation)
+	return r.ProcessToolObservation(ctx, currentStep, toolResponse)
 }
 
 // ExecuteTool executes the specified tool and returns the observation
@@ -1164,9 +1080,9 @@ func (r *ReActFlow) ExecuteTool(toolName string, toolInput string) string {
 	// Execute the tool with timeout
 	toolFunc, ok := tools.CopilotTools[toolName]
 	if !ok {
-		observation := fmt.Sprintf("Tool %s is not available. Considering switch to other supported tools.", toolName)
-		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "failed", toolName, observation)
-		return observation
+		toolResponse := fmt.Sprintf("Tool %s is not available. Considering switch to other supported tools.", toolName)
+		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "failed", toolName, toolResponse)
+		return toolResponse
 	}
 
 	// Execute tool with timeout
@@ -1184,45 +1100,45 @@ func (r *ReActFlow) ExecuteTool(toolName string, toolInput string) string {
 	}()
 
 	// Wait for tool execution with timeout
-	var observation string
+	var toolResponse string
 	select {
 	case toolResult := <-toolResultCh:
-		observation = strings.TrimSpace(toolResult.result)
+		toolResponse = strings.TrimSpace(toolResult.result)
 		if toolResult.err != nil {
-			observation = fmt.Sprintf("Tool %s failed with result: %s error: %v. Considering refine the inputs for the tool.",
+			toolResponse = fmt.Sprintf("Tool %s failed with result: %s error: %v. Considering refine the inputs for the tool.",
 				toolName, toolResult.result, toolResult.err)
-			r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "failed", toolName, observation)
+			r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "failed", toolName, toolResponse)
 		} else {
 			// Update step with tool call info
 			r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "in_progress", toolName, toolResult.result)
 		}
 	case <-time.After(r.PlanTracker.ExecutionTimeout):
-		observation = fmt.Sprintf("Tool %s execution timed out after %v seconds. Try with a simpler query or different tool.",
+		toolResponse = fmt.Sprintf("Tool %s execution timed out after %v seconds. Try with a simpler query or different tool.",
 			toolName, r.PlanTracker.ExecutionTimeout.Seconds())
-		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "failed", toolName, observation)
+		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "failed", toolName, toolResponse)
 	}
 
-	if observation == "" {
-		observation = "Empty result returned from the tool."
+	if toolResponse == "" {
+		toolResponse = "Empty result returned from the tool."
 	}
 	if r.Verbose {
-		color.Cyan("Observation: %s\n\n", observation)
+		color.Cyan("Tool %s result:\n %s\n\n", toolName, toolResponse)
 	}
-	return observation
+	return toolResponse
 }
 
 // ProcessToolObservation processes the observation from a tool execution
-func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *StepDetail, observation string) error {
+func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *StepDetail, toolResponse string) error {
 	// Truncate the prompt to the max tokens allowed by the model.
 	// This is required because the tool may have generated a long output.
-	observation = llms.ConstrictPrompt(observation, r.Model, 1000)
-	// Update the truncated observation
-	currentStep.Observation = observation
+	toolResponse = llms.ConstrictPrompt(toolResponse, r.Model, 1000)
+	// Update the truncated toolResponse
+	currentStep.Observation = toolResponse
 
-	// Update our plan tracker with the observation
-	r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "in_progress", currentStep.Action.Name, observation)
+	// Update our plan tracker with the toolResponse
+	r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "in_progress", currentStep.Action.Name, toolResponse)
 
-	// Create a new flow for processing the observation
+	// Create a new flow for processing the toolResponse observation
 	observationActionJSON, _ := json.MarshalIndent(currentStep, "", "  ")
 	observationFlow := &swarm.SimpleFlow{
 		Name:     "tool-call",
@@ -1243,22 +1159,21 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 
 	// Initialize the workflow for processing the observation
 	observationFlow.Initialize()
-
-	// Run the observation processing
-	obsCtx, obsCancel := context.WithTimeout(ctx, 5*time.Minute)
 	if r.Verbose {
 		color.Blue("[Step %d: %s] Processing tool observation\n", r.PlanTracker.CurrentStep+1, currentStep.Name)
 	}
 
+	// Run the observation processing
+	obsCtx, obsCancel := context.WithTimeout(ctx, 5*time.Minute)
 	observationResult, observationChatHistory, err := observationFlow.Run(obsCtx, r.Client)
 	obsCancel()
 
 	if err != nil {
 		if r.Verbose {
-			color.Red("Error processing observation: %v\n", err)
+			color.Red("Error processing tool observation: %v\n", err)
 		}
 		// Mark step with the appropriate status based on tool execution
-		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "failed", currentStep.Action.Name, observation)
+		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "failed", currentStep.Action.Name, toolResponse)
 
 		// Try to move to the next step regardless of the error
 		r.PlanTracker.MoveToNextStep()
@@ -1284,9 +1199,18 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 		}
 
 		// Mark step with the determined status and move on
-		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "completed", currentStep.Action.Name, observation)
+		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "completed", currentStep.Action.Name, toolResponse)
 		r.PlanTracker.MoveToNextStep()
 		return nil
+	}
+
+	// Update the step's observation with the thought from observationAction
+	observationThought := observationAction.Thought
+	if observationThought != "" {
+		r.PlanTracker.Steps[r.PlanTracker.CurrentStep].Observation = observationThought
+		if r.PlanTracker.CurrentStep < len(observationAction.Steps) {
+			observationAction.Steps[r.PlanTracker.CurrentStep].Observation = observationThought
+		}
 	}
 
 	// Sync steps from observation action with our tracker
@@ -1300,7 +1224,7 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 		}
 
 		// Mark current step as completed
-		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "completed", currentStep.Action.Name, observation)
+		r.PlanTracker.UpdateStepStatus(r.PlanTracker.CurrentStep, "completed", currentStep.Action.Name, observationThought)
 
 		// Even if we have a final answer, we should still move to the next step
 		// if we're not at the last step
@@ -1332,6 +1256,7 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 				originalStepIndex+1, observationAction.Steps[observationStepIndex].Action.Name)
 		}
 
+		r.PlanTracker.Steps[originalStepIndex].Observation = observationThought
 		r.PlanTracker.Steps[originalStepIndex].Action = observationAction.Steps[observationStepIndex].Action
 		r.PlanTracker.Steps[originalStepIndex].Status = "in_progress"
 		return nil // Continue with the same step but with a new action
@@ -1344,7 +1269,7 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 			observationAction.Steps[observationStepIndex].Action.Name != "" {
 
 			// Mark current step as completed
-			r.PlanTracker.UpdateStepStatus(originalStepIndex, "completed", currentStep.Action.Name, observation)
+			r.PlanTracker.UpdateStepStatus(originalStepIndex, "completed", currentStep.Action.Name, observationThought)
 
 			// Make sure we're not stepping beyond our plan's steps
 			if observationStepIndex < len(r.PlanTracker.Steps) {
@@ -1378,7 +1303,7 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 				r.PlanTracker.Steps[i].Status == "in_progress") {
 
 			// Mark current step as completed
-			r.PlanTracker.UpdateStepStatus(originalStepIndex, "completed", currentStep.Action.Name, observation)
+			r.PlanTracker.UpdateStepStatus(originalStepIndex, "completed", currentStep.Action.Name, observationThought)
 
 			// Update the target step's action and move to it
 			r.PlanTracker.Steps[i].Action = observationAction.Steps[i].Action
@@ -1393,7 +1318,7 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 	}
 
 	// Default case: mark current step as completed and move to next
-	r.PlanTracker.UpdateStepStatus(originalStepIndex, "completed", currentStep.Action.Name, observation)
+	r.PlanTracker.UpdateStepStatus(originalStepIndex, "completed", currentStep.Action.Name, observationThought)
 	r.PlanTracker.MoveToNextStep()
 	return nil
 }
@@ -1435,11 +1360,12 @@ func generateFinalSummary(pt *PlanTracker) string {
 
 	for i, step := range pt.Steps {
 		sb.WriteString(fmt.Sprintf("Step %d: %s [status: %s]\n", i+1, step.Description, step.Status))
-		observation := step.Observation[:min(200, len(step.Observation))]
-		if len(step.Observation) > 200 {
-			observation += " <truncated>"
+		observation := step.Observation
+		if len(observation) > 200 {
+			observation = observation[:200] + " <truncated>"
 		}
-		sb.WriteString(fmt.Sprintf("Observation: %q\n\n", observation))
+		formattedObs := formatObservationOutputs(observation)
+		sb.WriteString(fmt.Sprintf("Observation:\n%s\n\n", formattedObs))
 	}
 
 	return sb.String()
