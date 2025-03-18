@@ -13,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
+// Package assistants provides a simple AI assistant using OpenAI's GPT models.
 package assistants
 
 import (
@@ -132,7 +134,7 @@ func Assistant(model string, prompts []openai.ChatCompletionMessage, maxTokens i
 
 			// Constrict the prompt to the max tokens allowed by the model.
 			// This is required because the tool may have generated a long output.
-			observation = llms.ConstrictPrompt(observation, model, 1024)
+			observation = llms.ConstrictPrompt(observation, model)
 			toolPrompt.Observation = observation
 			assistantMessage, _ := json.Marshal(toolPrompt)
 			chatHistory = append(chatHistory, openai.ChatCompletionMessage{
@@ -141,7 +143,7 @@ func Assistant(model string, prompts []openai.ChatCompletionMessage, maxTokens i
 			})
 			// Constrict the chat history to the max tokens allowed by the model.
 			// This is required because the chat history may have grown too large.
-			chatHistory = llms.ConstrictMessages(chatHistory, model, maxTokens)
+			chatHistory = llms.ConstrictMessages(chatHistory, model)
 
 			// Start next iteration of LLM chat.
 			if verbose {

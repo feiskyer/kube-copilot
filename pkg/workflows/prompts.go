@@ -16,6 +16,7 @@ limitations under the License.
 package workflows
 
 const outputPrompt = `
+
 # Output Format
 
 Your final output must strictly adhere to this JSON structure:
@@ -102,6 +103,7 @@ kubectl patch sa default --type='json' -p='[{"op": "add", "path": "/secrets/1", 
 kubectl patch deployment nginx-deployment --subresource='scale' --type='merge' -p '{"spec":{"replicas":2}}'
 // Rolling update "www" containers of "frontend" deployment, updating the image
 kubectl set image deployment/frontend www=image:v2
+
 `
 
 const planPrompt = `

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package llms
 
 import (
@@ -42,6 +43,7 @@ var tokenLimitsPerModel = map[string]int{
 	"gpt-4-32k":              32768,
 	"gpt-4-vision-preview":   128000,
 	"gpt-4":                  8192,
+	"gpt-4-turbo":            128000,
 	"text-davinci-002":       4096,
 	"text-davinci-003":       4096,
 	"gpt-4o":                 128000,
@@ -58,7 +60,7 @@ func GetTokenLimits(model string) int {
 		return maxTokens
 	}
 
-	return 4096
+	return 8192
 }
 
 // NumTokensFromMessages returns the number of tokens in the given messages.
@@ -75,42 +77,19 @@ func NumTokensFromMessages(messages []openai.ChatCompletionMessage, model string
 		return
 	}
 
-	var tokensPerMessage, tokensPerName int
-	switch model {
-	case "gpt-3.5-turbo-0613",
-		"gpt-3.5-turbo-16k-0613",
-		"gpt-4-0314",
-		"gpt-4-32k-0314",
-		"gpt-4-0613",
-		"gpt-4-32k-0613",
-		"gpt-4o",
-		"gpt-4o-mini",
-		"o1-mini",
-		"o3-mini",
-		"o1":
-		tokensPerMessage = 3
-		tokensPerName = 1
-	case "gpt-3.5-turbo-0301":
+	tokensPerMessage := 3
+	tokensPerName := 1
+	if model == "gpt-3.5-turbo-0301" {
 		tokensPerMessage = 4 // every message follows <|start|>{role/name}\n{content}<|end|>\n
 		tokensPerName = -1   // if there's a name, the role is omitted
-	default:
-		if strings.Contains(model, "gpt-3.5-turbo") {
-			return NumTokensFromMessages(messages, "gpt-3.5-turbo-0613")
-		} else if strings.Contains(model, "gpt-4") {
-			return NumTokensFromMessages(messages, "gpt-4-0613")
-		} else {
-			err = fmt.Errorf("num_tokens_from_messages() is not implemented for model %s. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens", model)
-			log.Println(err)
-			return
-		}
 	}
 
 	for _, message := range messages {
 		numTokens += tokensPerMessage
 		numTokens += len(tkm.Encode(message.Content, nil, nil))
 		numTokens += len(tkm.Encode(message.Role, nil, nil))
-		numTokens += len(tkm.Encode(message.Name, nil, nil))
 		if message.Name != "" {
+			numTokens += len(tkm.Encode(message.Name, nil, nil))
 			numTokens += tokensPerName
 		}
 	}
@@ -119,25 +98,46 @@ func NumTokensFromMessages(messages []openai.ChatCompletionMessage, model string
 }
 
 // ConstrictMessages returns the messages that fit within the token limit.
-func ConstrictMessages(messages []openai.ChatCompletionMessage, model string, maxTokens int) []openai.ChatCompletionMessage {
+func ConstrictMessages(messages []openai.ChatCompletionMessage, model string) []openai.ChatCompletionMessage {
 	tokenLimits := GetTokenLimits(model)
-	if maxTokens >= tokenLimits {
-		return nil
-	}
 
 	for {
 		numTokens := NumTokensFromMessages(messages, model)
-		if numTokens+maxTokens < tokenLimits {
+		if numTokens <= tokenLimits {
 			return messages
 		}
 
-		// Remove the oldest message (keep the first one as it is usually the system prompt)
-		messages = append(messages[:1], messages[2:]...)
+		// If no messages, return empty
+		if len(messages) == 0 {
+			return messages
+		}
+
+		// If only one message or we can't reduce further
+		if len(messages) <= 1 {
+			return messages
+		}
+
+		// When over the limit, try keeping only the system prompt (first message)
+		// and the most recent message
+		if len(messages) > 2 {
+			// Try with just system and last message
+			systemAndLatest := []openai.ChatCompletionMessage{
+				messages[0],
+				messages[len(messages)-1],
+			}
+			messages = systemAndLatest
+		} else {
+			// We have exactly 2 messages and they're still over the limit
+			// Keep only the first message (usually system prompt)
+			messages = messages[:1]
+		}
 	}
 }
 
 // ConstrictPrompt returns the prompt that fits within the token limit.
-func ConstrictPrompt(prompt string, model string, tokenLimits int) string {
+func ConstrictPrompt(prompt string, model string) string {
+	tokenLimits := GetTokenLimits(model)
+
 	for {
 		numTokens := NumTokensFromMessages([]openai.ChatCompletionMessage{{Content: prompt}}, model)
 		if numTokens < tokenLimits {

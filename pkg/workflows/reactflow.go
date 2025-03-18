@@ -13,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
+// Package workflows provides the ReAct (Reason + Act) workflow for AI assistants.
 package workflows
 
 import (
@@ -217,16 +219,16 @@ func (pt *PlanTracker) MoveToNextStep() bool {
 				pt.Steps[pt.CurrentStep].Status = "in_progress"
 			}
 			return true
-		} else {
-			// If we had an invalid original step or were already at the end,
-			// set to the last step in the plan
-			if len(pt.Steps) > 0 {
-				pt.CurrentStep = len(pt.Steps) - 1
-			} else {
-				pt.CurrentStep = 0 // Handle empty step list
-			}
-			return false
 		}
+
+		// If we had an invalid original step or were already at the end,
+		// set to the last step in the plan
+		if len(pt.Steps) > 0 {
+			pt.CurrentStep = len(pt.Steps) - 1
+		} else {
+			pt.CurrentStep = 0 // Handle empty step list
+		}
+		return false
 	}
 
 	return true
@@ -1131,7 +1133,7 @@ func (r *ReActFlow) ExecuteTool(toolName string, toolInput string) string {
 func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *StepDetail, toolResponse string) error {
 	// Truncate the prompt to the max tokens allowed by the model.
 	// This is required because the tool may have generated a long output.
-	toolResponse = llms.ConstrictPrompt(toolResponse, r.Model, 1000)
+	toolResponse = llms.ConstrictPrompt(toolResponse, r.Model)
 	// Update the truncated toolResponse
 	currentStep.Observation = toolResponse
 
