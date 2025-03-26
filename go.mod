@@ -12,7 +12,7 @@ require (
 	golang.org/x/term v0.30.0
 	google.golang.org/api v0.225.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/apimachinery v0.32.2
+	k8s.io/apimachinery v0.32.3
 	k8s.io/client-go v0.32.2
 )
 
