@@ -72,7 +72,7 @@ For [Azure OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-ser
 
 - `AZURE_OPENAI_API_KEY=<your-api-key>`
 - `AZURE_OPENAI_API_BASE=https://<replace-this>.openai.azure.com/`
-- `AZURE_OPENAI_API_VERSION=2025-02-01-preview`
+- `AZURE_OPENAI_API_VERSION=2025-03-01-preview`
 
 </details>
 

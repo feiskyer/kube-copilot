@@ -509,6 +509,7 @@ func (r *ReActFlow) Plan(ctx context.Context) error {
 		Name:     "plan",
 		Model:    r.Model,
 		MaxTurns: 30,
+		JSONMode: true,
 		Steps: []swarm.SimpleFlowStep{
 			{
 				Name:         "plan-step",
@@ -963,6 +964,7 @@ func (r *ReActFlow) ThinkAboutStep(ctx context.Context, currentStep *StepDetail)
 		Name:     "think",
 		Model:    r.Model,
 		MaxTurns: 30,
+		JSONMode: true,
 		Steps: []swarm.SimpleFlowStep{
 			{
 				Name:         "think-step",
@@ -1146,6 +1148,7 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 		Name:     "tool-call",
 		Model:    r.Model,
 		MaxTurns: 30,
+		JSONMode: true,
 		Steps: []swarm.SimpleFlowStep{
 			{
 				Name:         "tool-call-step",
