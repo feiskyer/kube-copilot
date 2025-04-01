@@ -4,7 +4,8 @@ Kubernetes Copilot powered by LLM, which leverages advanced language models to s
 
 ## Features
 
-- Automate Kubernetes cluster operations using ChatGPT (GPT-4 or GPT-3.5).
+- Automate Kubernetes cluster operations using large language models.
+- Provide your own OpenAI, Azure OpenAI, Anthropic Claude, Google Gemini or other OpenAI-compatible LLM providers.
 - Diagnose and analyze potential issues for Kubernetes workloads.
 - Generate Kubernetes manifests based on provided prompt instructions.
 - Utilize native `kubectl` and `trivy` commands for Kubernetes cluster access and security vulnerability scanning.
@@ -24,7 +25,7 @@ Setup the following environment variables:
 
 - Ensure [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) is installed on the local machine and the kubeconfig file is configured for Kubernetes cluster access.
 - Install [`trivy`](https://github.com/aquasecurity/trivy) to assess container image security issues (only required for the `audit` command).
-- Set the OpenAI [API key](https://platform.openai.com/account/api-keys) as the `OPENAI_API_KEY` environment variable to enable ChatGPT functionality.
+- Set the OpenAI [API key](https://platform.openai.com/account/api-keys) as the `OPENAI_API_KEY` environment variable to enable LLM AI functionality (refer below for other LLM providers).
 
 Then run the following commands directly in the terminal:
 
@@ -65,6 +66,16 @@ Set the OpenAI [API key](https://platform.openai.com/account/api-keys) as the `O
 </details>
 
 <details>
+
+<details>
+<summary>Anthropic Claude</summary>
+
+Anthropic Claude provides an [OpenAI compatible API](https://docs.anthropic.com/en/api/openai-sdk), so it could be used by using following config:
+
+- `OPENAI_API_KEY=<your-anthropic-key>`
+- `OPENAI_API_BASE='https://api.anthropic.com/v1/'`
+
+</details>
 
 <summary>Azure OpenAI</summary>
 

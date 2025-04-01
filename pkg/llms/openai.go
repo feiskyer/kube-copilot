@@ -55,7 +55,7 @@ func NewOpenAIClient() (*OpenAIClient, error) {
 	azureAPIBase := os.Getenv("AZURE_OPENAI_API_BASE")
 	azureAPIVersion := os.Getenv("AZURE_OPENAI_API_VERSION")
 	if azureAPIVersion == "" {
-		azureAPIVersion = "2025-02-01-preview"
+		azureAPIVersion = "2025-03-01-preview"
 	}
 	if azureAPIKey != "" && azureAPIBase != "" {
 		config := openai.DefaultConfig(azureAPIKey)

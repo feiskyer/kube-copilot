@@ -108,7 +108,7 @@ func NewSwarm() (*swarm.Swarm, error) {
 	azureAPIBase := os.Getenv("AZURE_OPENAI_API_BASE")
 	azureAPIVersion := os.Getenv("AZURE_OPENAI_API_VERSION")
 	if azureAPIVersion == "" {
-		azureAPIVersion = "2025-02-01-preview"
+		azureAPIVersion = "2025-03-01-preview"
 	}
 	if azureAPIKey != "" && azureAPIBase != "" {
 		return swarm.NewSwarm(swarm.NewAzureOpenAIClient(azureAPIKey, azureAPIBase, azureAPIVersion)), nil
