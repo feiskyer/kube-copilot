@@ -77,6 +77,16 @@ For [Azure OpenAI service](https://learn.microsoft.com/en-us/azure/cognitive-ser
 </details>
 
 <details>
+<summary>Google Gemini</summary>
+
+Google Gemini provides an OpenAI compatible API, so it could be used by using following config:
+
+- `OPENAI_API_KEY=<your-google-ai-key>`
+- `OPENAI_API_BASE='https://generativelanguage.googleapis.com/v1beta/openai/'`
+
+</details>
+
+<details>
 <summary>Ollama or other OpenAI compatible LLMs</summary>
 
 For Ollama or other OpenAI compatible LLMs, set the following environment variables:
