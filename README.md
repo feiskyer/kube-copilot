@@ -9,7 +9,6 @@ Kubernetes Copilot powered by LLM, which leverages advanced language models to s
 - Diagnose and analyze potential issues for Kubernetes workloads.
 - Generate Kubernetes manifests based on provided prompt instructions.
 - Utilize native `kubectl` and `trivy` commands for Kubernetes cluster access and security vulnerability scanning.
-- Access the web and perform Google searches without leaving the terminal.
 
 ## Installation
 
@@ -162,7 +161,6 @@ Global Flags:
 
 </details>
 
-
 <details>
 <summary>Diagnose Problems for Pod</summary>
 
@@ -240,16 +238,6 @@ Global Flags:
   -v, --verbose              Enable verbose output
 ```
 
-</details>
-
-## Integrations
-
-<details>
-<summary>Google Search</summary>
-
-Large language models are trained with outdated data, and hence may lack the most current information or miss out on recent developments. This is where Google Search becomes an optional tool. By integrating real-time search capabilities, LLMs can access the latest data, ensuring that responses are not only accurate but also up-to-date.
-
-To enable it, set `GOOGLE_API_KEY` and `GOOGLE_CSE_ID` (obtain API key from [Google Cloud](https://cloud.google.com/docs/authentication/api-keys?visit_id=638154888929258210-4085587461) and CSE ID from [Google CSE](http://www.google.com/cse/)).
 </details>
 
 ## Python Version
