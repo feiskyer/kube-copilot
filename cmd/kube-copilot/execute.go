@@ -25,12 +25,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var instructions string
+var (
+	executeInstructions   string
+	executeMCPFile        string
+	executeDisableKubectl bool
+)
 
 func init() {
-	tools.CopilotTools["trivy"] = tools.Trivy
+	executeCmd.PersistentFlags().StringVarP(&executeInstructions, "instructions", "i", "", "instructions to execute")
+	executeCmd.PersistentFlags().StringVarP(&executeMCPFile, "mcp-config", "p", "", "MCP configuration file")
+	executeCmd.PersistentFlags().BoolVarP(&executeDisableKubectl, "disable-kubectl", "d", false, "Disable kubectl tool (useful when using MCP server)")
 
-	executeCmd.PersistentFlags().StringVarP(&instructions, "instructions", "i", "", "instructions to execute")
 	executeCmd.MarkFlagRequired("instructions")
 }
 
@@ -38,15 +43,27 @@ var executeCmd = &cobra.Command{
 	Use:   "execute",
 	Short: "Execute operations based on prompt instructions",
 	Run: func(cmd *cobra.Command, args []string) {
-		if instructions == "" && len(args) > 0 {
-			instructions = strings.Join(args, " ")
+		if executeInstructions == "" && len(args) > 0 {
+			executeInstructions = strings.Join(args, " ")
 		}
-		if instructions == "" {
+		if executeInstructions == "" {
 			fmt.Println("Please provide the instructions")
 			return
 		}
 
-		flow, err := workflows.NewReActFlow(model, instructions, verbose, maxIterations)
+		clients, err := tools.InitTools(executeMCPFile, executeDisableKubectl, verbose)
+		if err != nil {
+			color.Red("Failed to initialize tools: %v", err)
+			return
+		}
+
+		defer func() {
+			for _, client := range clients {
+				go client.Close()
+			}
+		}()
+
+		flow, err := workflows.NewReActFlow(model, executeInstructions, tools.GetToolPrompt(), verbose, maxIterations)
 		if err != nil {
 			color.Red(err.Error())
 			return

@@ -50,7 +50,7 @@ var (
 	// kubectlFunc is a Swarm function that runs kubectl command.
 	kubectlFunc = swarm.NewAgentFunction(
 		"kubectl",
-		"Run kubectl command",
+		"Run kubectl command. Ensure command is a single kubectl and shell pipe (|) and redirect (>) are not supported.",
 		func(args map[string]interface{}) (interface{}, error) {
 			command, ok := args["command"].(string)
 			if !ok {

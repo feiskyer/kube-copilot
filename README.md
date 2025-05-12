@@ -9,6 +9,7 @@ Kubernetes Copilot powered by LLM, which leverages advanced language models to s
 - Diagnose and analyze potential issues for Kubernetes workloads.
 - Generate Kubernetes manifests based on provided prompt instructions.
 - Utilize native `kubectl` and `trivy` commands for Kubernetes cluster access and security vulnerability scanning.
+- Support for Model Context Protocol (MCP) protocol to integrate with external tools.
 
 ## Installation
 
@@ -47,9 +48,10 @@ Available Commands:
 Flags:
   -c, --count-tokens         Print tokens count
   -h, --help                 help for kube-copilot
-  -x, --max-iterations int   Max iterations for the agent running (default 10)
+  -x, --max-iterations int   Max iterations for the agent running (default 30)
   -t, --max-tokens int       Max tokens for the GPT model (default 2048)
-  -m, --model string         OpenAI model to use (default "gpt-4")
+  -m, --model string         OpenAI model to use (default "gpt-4o")
+  -p, --mcp-config string    MCP configuration file
   -v, --verbose              Enable verbose output
       --version              version for kube-copilot
 
@@ -176,6 +178,7 @@ Flags:
   -h, --help               help for diagnose
   -n, --name string        Resource name
   -s, --namespace string   Resource namespace (default "default")
+  -p, --mcp-config string     MCP configuration file
 
 Global Flags:
   -c, --count-tokens         Print tokens count
@@ -202,6 +205,7 @@ Usage:
 Flags:
   -h, --help                  help for execute
   -i, --instructions string   instructions to execute
+  -p, --mcp-config string     MCP configuration file
 
 Global Flags:
   -c, --count-tokens         Print tokens count
@@ -237,6 +241,45 @@ Global Flags:
   -m, --model string         OpenAI model to use (default "gpt-4o")
   -v, --verbose              Enable verbose output
 ```
+
+</details>
+
+<details>
+<summary>Leverage Model Context Protocol (MCP)</summary>
+
+Kube-copilot integrates with external tools for issue diagnosis and instruction execution (via the diagnose and execute subcommands) using the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/).
+
+To use MCP tools:
+
+1. Create a JSON configuration file for your MCP servers:
+
+  ```json
+  {
+    "mcpServers": {
+      "sequential-thinking": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking"
+        ]
+      },
+      "kubernetes": {
+        "command": "uvx",
+        "args": [
+          "mcp-kubernetes-server"
+        ]
+      }
+    }
+  }
+  ```
+
+2. Run kube-copilot with the `--mcp-config` flag:
+
+  ```sh
+  kube-copilot execute --instructions "Your instructions" --mcp-config path/to/mcp-config.json
+  ```
+
+The MCP tools will be automatically discovered and made available to the LLM.
 
 </details>
 

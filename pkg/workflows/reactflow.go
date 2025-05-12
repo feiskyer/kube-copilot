@@ -45,8 +45,8 @@ type StepDetail struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Action      struct {
-		Name  string `json:"name"`
-		Input string `json:"input"`
+		Name  string      `json:"name"`
+		Input interface{} `json:"input"`
 	} `json:"action,omitempty"`
 	Observation string `json:"observation,omitempty"`
 	Status      string `json:"status"` // pending, in_progress, completed, failed
@@ -455,13 +455,14 @@ type ReActFlow struct {
 	Instructions  string
 	Verbose       bool
 	MaxIterations int
+	ToolPrompt    string
 	PlanTracker   *PlanTracker
 	Client        *swarm.Swarm
 	ChatHistory   interface{}
 }
 
 // NewReActFlow creates a new ReActFlow instance
-func NewReActFlow(model string, instructions string, verbose bool, maxIterations int) (*ReActFlow, error) {
+func NewReActFlow(model string, instructions string, toolPrompt string, verbose bool, maxIterations int) (*ReActFlow, error) {
 	// Create OpenAI client
 	client, err := NewSwarm()
 	if err != nil {
@@ -473,6 +474,7 @@ func NewReActFlow(model string, instructions string, verbose bool, maxIterations
 		Instructions:  instructions,
 		MaxIterations: maxIterations,
 		PlanTracker:   NewPlanTracker(),
+		ToolPrompt:    toolPrompt,
 		Verbose:       verbose,
 		Client:        client,
 		ChatHistory:   nil,
@@ -513,7 +515,7 @@ func (r *ReActFlow) Plan(ctx context.Context) error {
 		Steps: []swarm.SimpleFlowStep{
 			{
 				Name:         "plan-step",
-				Instructions: planPrompt,
+				Instructions: strings.Replace(planPrompt, "{{TOOLS}}", r.ToolPrompt, 1),
 				Inputs: map[string]interface{}{
 					"instructions": fmt.Sprintf("First, create a clear and actionable step-by-step plan to solve this problem: %s", r.Instructions),
 				},
@@ -968,7 +970,7 @@ func (r *ReActFlow) ThinkAboutStep(ctx context.Context, currentStep *StepDetail)
 		Steps: []swarm.SimpleFlowStep{
 			{
 				Name:         "think-step",
-				Instructions: reactPrompt,
+				Instructions: strings.Replace(reactPrompt, "{{TOOLS}}", r.ToolPrompt, 1),
 				Inputs: map[string]interface{}{
 					"instructions": fmt.Sprintf("User input: %s\n\nCurrent plan and status:\n%s\n\nExecute the current step (index %d) of the plan.",
 						r.Instructions, string(currentReactActionJSON), r.PlanTracker.CurrentStep),
@@ -1030,7 +1032,12 @@ func (r *ReActFlow) ExecuteToolIfNeeded(ctx context.Context, stepAction *ReactAc
 		r.PlanTracker.Steps[currentStepIndex].Action.Name != "" {
 		actionExists = true
 		actionName = r.PlanTracker.Steps[currentStepIndex].Action.Name
-		actionInput = r.PlanTracker.Steps[currentStepIndex].Action.Input
+		if input, ok := r.PlanTracker.Steps[currentStepIndex].Action.Input.(string); ok {
+			actionInput = input
+		} else {
+			inputBytes, _ := json.Marshal(r.PlanTracker.Steps[currentStepIndex].Action.Input)
+			actionInput = string(inputBytes)
+		}
 	}
 
 	// If no action in our tracker, check if stepAction provides one
@@ -1038,7 +1045,12 @@ func (r *ReActFlow) ExecuteToolIfNeeded(ctx context.Context, stepAction *ReactAc
 		stepAction.Steps[currentStepIndex].Action.Name != "" {
 		actionExists = true
 		actionName = stepAction.Steps[currentStepIndex].Action.Name
-		actionInput = stepAction.Steps[currentStepIndex].Action.Input
+		if input, ok := stepAction.Steps[currentStepIndex].Action.Input.(string); ok {
+			actionInput = input
+		} else {
+			inputBytes, _ := json.Marshal(stepAction.Steps[currentStepIndex].Action.Input)
+			actionInput = string(inputBytes)
+		}
 
 		// Sync this action back to our plan tracker
 		r.PlanTracker.Steps[currentStepIndex].Action.Name = actionName
@@ -1096,7 +1108,7 @@ func (r *ReActFlow) ExecuteTool(toolName string, toolInput string) string {
 	})
 
 	go func() {
-		result, err := toolFunc(toolInput)
+		result, err := toolFunc.ToolFunc(toolInput)
 		toolResultCh <- struct {
 			result string
 			err    error

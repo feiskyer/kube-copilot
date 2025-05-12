@@ -29,7 +29,7 @@ Your final output must strictly adhere to this JSON structure:
       "name": "<descriptive name of step 1>",
       "description": "<detailed description of what this step will do>",
       "action": {
-        "name": "<tool to call for current step: kubectl, python, or trivy>",
+        "name": "<tool to call for current step>",
         "input": "<exact command or script with all required context>"
       },
       "status": "<one of: pending, in_progress, completed, failed>",
@@ -39,7 +39,7 @@ Your final output must strictly adhere to this JSON structure:
       "name": "<descriptive name of step 2>",
       "description": "<detailed description of what this step will do>",
       "action": {
-        "name": "<tool to call for current step: kubectl, python, or trivy>",
+        "name": "<tool to call for current step>",
         "input": "<exact command or script with all required context>"
       },
       "observation": "<result from the tool call of the action, to be filled in after action execution>",
@@ -113,7 +113,7 @@ Your job is to:
 1. Analyze the user's instruction and their intent carefully to understand the issue or goal.
 2. Create a clear and actionable plan to achieve the goal and user intent. Document this plan in the 'steps' field as a structured array.
 3. For any troubleshooting step that requires tool execution, include a function call by populating the 'action' field with:
-   - 'name': one of [kubectl, python, trivy].
+   - 'name': one of supported tools below.
    - 'input': the exact command or script, including any required context (e.g., raw YAML, error logs, image name).
 4. Track progress and adapt plans when necessary
 5. Do not set the 'final_answer' field when a tool call is pending; only set 'final_answer' when no further tool calls are required.
@@ -121,9 +121,8 @@ Your job is to:
 
 # Available Tools
 
-- kubectl: Execute Kubernetes commands. DO NOT use interactive commands (e.g. kubectl edit or kubectl logs -f). Use options like '--sort-by=memory' or '--sort-by=cpu' with 'kubectl top' when necessary and user '--all-namespaces' for cluster-wide information. Input: a single kubectl command (multiple commands are not supported). Output: the command result.
-- python: Run Python scripts that leverage the Kubernetes Python SDK client. Ensure that output is generated using 'print(...)'. Input: a Python script (multiple scripts are not supported). Output: the stdout and stderr.
-- trivy: Scan container images for vulnerabilities using the 'trivy image' command. Only use trivy when user question is security related. Input: an image name. Output: a report of vulnerabilities.
+{{TOOLS}}
+
 ` + outputPrompt
 
 const nextStepPrompt = `You are an expert Planning Agent tasked with solving Kubernetes and cloud-native networking problems efficiently through structured plans.
@@ -143,16 +142,14 @@ Your responses must follow a strict JSON format and simulate tool execution via 
 
 # Available Tools
 
-- kubectl: Execute Kubernetes commands. DO NOT use interactive commands (e.g. kubectl edit or kubectl logs -f). Use options like '--sort-by=memory' or '--sort-by=cpu' with 'kubectl top' when necessary and user '--all-namespaces' for cluster-wide information. Input: a single kubectl command (multiple commands are not supported). Output: the command result.
-- python: Run Python scripts that leverage the Kubernetes Python SDK client. Ensure that output is generated using 'print(...)'. Input: a Python script (multiple scripts are not supported). Output: the stdout and stderr.
-- trivy: Scan container images for vulnerabilities using the 'trivy image' command. Only use trivy when user question is security related. Input: an image name. Output: a report of vulnerabilities.
+{{TOOLS}}
 
 # Guidelines
 
 1. Analyze the user's instruction and their intent carefully to understand the issue or goal.
 2. Formulate a detailed, step-by-step plan to achieve the goal and user intent. Document this plan in the 'steps' field as a structured array.
 3. For any troubleshooting step that requires tool execution, include a function call by populating the 'action' field with:
-   - 'name': one of [kubectl, python, trivy].
+   - 'name': one of available tools.
    - 'input': the exact command or script, including any required context (e.g., raw YAML, error logs, image name).
 4. DO NOT instruct the user to manually run any commands. All tool calls must be performed by the assistant through the 'action' field.
 5. After a tool is invoked, analyze its result (which will be provided in the 'observation' field) and update your chain-of-thought accordingly.

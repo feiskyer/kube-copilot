@@ -37,8 +37,8 @@ type ToolPrompt struct {
 	Question string `json:"question"`
 	Thought  string `json:"thought,omitempty"`
 	Action   struct {
-		Name  string `json:"name"`
-		Input string `json:"input"`
+		Name  string      `json:"name"`
+		Input interface{} `json:"input"`
 	} `json:"action,omitempty"`
 	Observation string `json:"observation,omitempty"`
 	FinalAnswer string `json:"final_answer,omitempty"`
@@ -114,13 +114,22 @@ func Assistant(model string, prompts []openai.ChatCompletionMessage, maxTokens i
 		}
 
 		if toolPrompt.Action.Name != "" {
+			input, ok := toolPrompt.Action.Input.(string)
+			if !ok {
+				inputBytes, err := json.Marshal(toolPrompt.Action.Input)
+				if err != nil {
+					return "", chatHistory, fmt.Errorf("failed to marshal tool input: %v", err)
+				}
+				input = string(inputBytes)
+			}
+
 			var observation string
 			if verbose {
 				color.Blue("Iteration %d): executing tool %s\n", iterations, toolPrompt.Action.Name)
-				color.Cyan("Invoking %s tool with inputs: \n============\n%s\n============\n\n", toolPrompt.Action.Name, toolPrompt.Action.Input)
+				color.Cyan("Invoking %s tool with inputs: \n============\n%s\n============\n\n", toolPrompt.Action.Name, input)
 			}
 			if toolFunc, ok := tools.CopilotTools[toolPrompt.Action.Name]; ok {
-				ret, err := toolFunc(toolPrompt.Action.Input)
+				ret, err := toolFunc.ToolFunc(input)
 				observation = strings.TrimSpace(ret)
 				if err != nil {
 					observation = fmt.Sprintf("Tool %s failed with error %s. Considering refine the inputs for the tool.", toolPrompt.Action.Name, ret)
