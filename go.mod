@@ -8,7 +8,7 @@ require (
 	github.com/charmbracelet/glamour v0.10.0
 	github.com/fatih/color v1.18.0
 	github.com/feiskyer/swarm-go v0.2.3
-	github.com/mark3labs/mcp-go v0.27.0
+	github.com/mark3labs/mcp-go v0.33.0
 	github.com/pkoukk/tiktoken-go v0.1.7
 	github.com/sashabaranov/go-openai v1.39.1
 	github.com/spf13/cobra v1.9.1
