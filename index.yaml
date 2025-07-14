@@ -19,7 +19,7 @@ entries:
     name: kube-copilot
     type: application
     urls:
-    - .pages/kube-copilot-0.1.27.tgz
+    - kube-copilot-0.1.27.tgz
     version: 0.1.27
   - apiVersion: v2
     appVersion: 0.1.26
@@ -29,7 +29,7 @@ entries:
     name: kube-copilot
     type: application
     urls:
-    - .pages/kube-copilot-0.1.26.tgz
+    - kube-copilot-0.1.26.tgz
     version: 0.1.26
   - apiVersion: v2
     appVersion: 0.1.25
@@ -39,7 +39,7 @@ entries:
     name: kube-copilot
     type: application
     urls:
-    - .pages/kube-copilot-0.1.25.tgz
+    - kube-copilot-0.1.25.tgz
     version: 0.1.25
   - apiVersion: v2
     appVersion: 0.1.22
@@ -49,7 +49,7 @@ entries:
     name: kube-copilot
     type: application
     urls:
-    - .pages/kube-copilot-0.1.22.tgz
+    - kube-copilot-0.1.22.tgz
     version: 0.1.22
   - apiVersion: v2
     appVersion: 0.1.21
@@ -59,7 +59,7 @@ entries:
     name: kube-copilot
     type: application
     urls:
-    - .pages/kube-copilot-0.1.21.tgz
+    - kube-copilot-0.1.21.tgz
     version: 0.1.21
   - apiVersion: v2
     appVersion: 0.1.20
@@ -69,7 +69,7 @@ entries:
     name: kube-copilot
     type: application
     urls:
-    - .pages/kube-copilot-0.1.20.tgz
+    - kube-copilot-0.1.20.tgz
     version: 0.1.20
   - apiVersion: v2
     appVersion: 0.1.19
@@ -79,7 +79,7 @@ entries:
     name: kube-copilot
     type: application
     urls:
-    - .pages/kube-copilot-0.1.19.tgz
+    - kube-copilot-0.1.19.tgz
     version: 0.1.19
   - apiVersion: v2
     appVersion: 0.1.18
@@ -89,7 +89,7 @@ entries:
     name: kube-copilot
     type: application
     urls:
-    - .pages/kube-copilot-0.1.18.tgz
+    - kube-copilot-0.1.18.tgz
     version: 0.1.18
   - apiVersion: v2
     appVersion: 0.1.17
@@ -99,7 +99,7 @@ entries:
     name: kube-copilot
     type: application
     urls:
-    - .pages/kube-copilot-0.1.17.tgz
+    - kube-copilot-0.1.17.tgz
     version: 0.1.17
   - apiVersion: v2
     appVersion: 0.1.16
@@ -109,7 +109,7 @@ entries:
     name: kube-copilot
     type: application
     urls:
-    - .pages/kube-copilot-0.1.16.tgz
+    - kube-copilot-0.1.16.tgz
     version: 0.1.16
   - apiVersion: v2
     appVersion: 0.1.15
@@ -119,7 +119,7 @@ entries:
     name: kube-copilot
     type: application
     urls:
-    - .pages/kube-copilot-0.1.15.tgz
+    - kube-copilot-0.1.15.tgz
     version: 0.1.15
   - apiVersion: v2
     appVersion: 0.1.14
@@ -129,6 +129,6 @@ entries:
     name: kube-copilot
     type: application
     urls:
-    - .pages/kube-copilot-0.1.14.tgz
+    - kube-copilot-0.1.14.tgz
     version: 0.1.14
 generated: "2025-07-14T15:07:10.164014+08:00"
