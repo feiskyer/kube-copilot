@@ -10,7 +10,7 @@ require (
 	github.com/feiskyer/swarm-go v0.2.3
 	github.com/mark3labs/mcp-go v0.37.0
 	github.com/pkoukk/tiktoken-go v0.1.7
-	github.com/sashabaranov/go-openai v1.39.1
+	github.com/sashabaranov/go-openai v1.41.1
 	github.com/spf13/cobra v1.9.1
 	golang.org/x/term v0.32.0
 	google.golang.org/api v0.237.0
