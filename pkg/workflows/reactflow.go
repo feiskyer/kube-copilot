@@ -1262,6 +1262,19 @@ func (r *ReActFlow) ProcessToolObservation(ctx context.Context, currentStep *Ste
 				observationStepIndex, r.PlanTracker.CurrentStep)
 		}
 		observationStepIndex = r.PlanTracker.CurrentStep
+
+		// If even the corrected index is out of bounds for observationAction.Steps,
+		// we can't safely access observationAction.Steps[observationStepIndex]
+		// So just mark current step as completed and move forward
+		if observationStepIndex >= len(observationAction.Steps) {
+			if r.Verbose {
+				color.Yellow("Corrected step index %d is still out of bounds for observation steps (length %d). Marking current step as completed.",
+					observationStepIndex, len(observationAction.Steps))
+			}
+			r.PlanTracker.UpdateStepStatus(originalStepIndex, "completed", currentStep.Action.Name, observationThought)
+			r.PlanTracker.MoveToNextStep()
+			return nil
+		}
 	}
 
 	// Check if the observation indicates we should run a different action for the current step
